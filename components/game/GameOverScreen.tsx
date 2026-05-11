@@ -6,6 +6,19 @@ import { cloudSaveGame } from '@/lib/cloudSave'
 import { getRating, formatMoney } from '@/lib/gameLogic'
 import StockChart from './StockChart'
 
+const GAME_URL = 'https://kabu-three.vercel.app'
+
+function shareText(name: string, industry: string, turns: number, grade: string, totalReturn: string): string {
+  const ret = Number(totalReturn)
+  if (grade === 'F') {
+    if (turns <= 5) return `「${name}」を${industry}業で経営したけど${turns}ターンで終わった😂\n株価${ret}%の大惨事…\n#株式会社シミュレーター\n${GAME_URL}`
+    return `「${name}」${industry}業・Fランク判定くらった😭\n株価${ret}%、経営センスなさすぎ\n#株式会社シミュレーター\n${GAME_URL}`
+  }
+  if (grade === 'S') return `「${name}」${industry}業でSランク達成！🏆\n株価+${totalReturn}%、${turns}ターン完璧経営\n#株式会社シミュレーター\n${GAME_URL}`
+  if (grade === 'A') return `「${name}」${industry}業でAランク！📈\n株価+${totalReturn}%\n#株式会社シミュレーター\n${GAME_URL}`
+  return `「${name}」を${industry}業で${turns}ターン経営して${grade}ランク\n株価${ret >= 0 ? '+' : ''}${totalReturn}%\n#株式会社シミュレーター\n${GAME_URL}`
+}
+
 const GRADE_CONFIG: Record<string, { color: string; bg: string; border: string; emoji: string }> = {
   S: { color: 'text-yellow-400',  bg: 'from-yellow-950 to-amber-950',   border: 'border-yellow-700',  emoji: '👑' },
   A: { color: 'text-emerald-400', bg: 'from-emerald-950 to-green-950',  border: 'border-emerald-700', emoji: '🏆' },
@@ -123,11 +136,18 @@ export default function GameOverScreen({ onShowHistory }: Props) {
           ))}
         </div>
 
-        <div className="bg-gray-900 rounded-2xl p-4 border border-gray-800">
-          <div className="text-gray-400 text-xs font-bold mb-2">シェアする</div>
-          <p className="text-gray-300 text-sm leading-relaxed">
-            「{company.name}」を経営して{grade}ランク達成！株価{Number(totalReturn) >= 0 ? '+' : ''}{totalReturn}%{'\n'}#株式会社シミュレーター
-          </p>
+        <div className="bg-gray-900 rounded-2xl p-4 border border-gray-800 space-y-3">
+          <div className="text-gray-400 text-xs font-bold">シェアする</div>
+          <p className="text-gray-300 text-sm leading-relaxed whitespace-pre-line">{shareText(company.name, company.industry, reports.length, grade, totalReturn)}</p>
+          <a
+            href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText(company.name, company.industry, reports.length, grade, totalReturn))}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-center gap-2 w-full bg-black hover:bg-gray-900 border border-gray-700 text-white font-bold py-3 rounded-xl transition-all hover:scale-105 active:scale-95 text-sm"
+          >
+            <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.746l7.73-8.835L1.254 2.25H8.08l4.259 5.63L18.244 2.25zm-1.161 17.52h1.833L7.084 4.126H5.117L17.083 19.77z"/></svg>
+            X（Twitter）に投稿する
+          </a>
         </div>
 
         <div className="space-y-3">
