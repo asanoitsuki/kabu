@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(req: NextRequest) {
-  const apiKey = process.env.ANTHROPIC_API_KEY
+  const apiKey = process.env.GEMINI_API_KEY
   if (!apiKey) {
     return NextResponse.json({ error: 'API key not configured' }, { status: 500 })
   }
@@ -43,26 +43,24 @@ ${events.length > 0 ? events.map((e: string) => `・${e}`).join('\n') : '特に�
 簡潔に、ゲーム初心者でもわかりやすい言葉で書いてください。`
 
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-      },
-      body: JSON.stringify({
-        model: 'claude-haiku-4-5-20251001',
-        max_tokens: 600,
-        messages: [{ role: 'user', content: prompt }],
-      }),
-    })
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: { maxOutputTokens: 800 },
+        }),
+      }
+    )
 
     const data = await res.json()
     if (!res.ok) {
       return NextResponse.json({ error: data?.error?.message ?? 'API error' }, { status: 500 })
     }
 
-    const text = data.content?.[0]?.text ?? ''
+    const text = data.candidates?.[0]?.content?.parts?.[0]?.text ?? ''
     return NextResponse.json({ analysis: text })
   } catch (e: any) {
     return NextResponse.json({ error: e.message }, { status: 500 })
