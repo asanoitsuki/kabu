@@ -9,33 +9,34 @@ import SetupScreen from '@/components/game/SetupScreen'
 import GameScreen from '@/components/game/GameScreen'
 import GameOverScreen from '@/components/game/GameOverScreen'
 import HistoryScreen from '@/components/game/HistoryScreen'
+import RankingScreen from '@/components/game/RankingScreen'
+import BottomNav, { NavTab } from '@/components/BottomNav'
+import NewsScreen from '@/components/game/NewsScreen'
+import AskAIScreen from '@/components/game/AskAIScreen'
+
+type AppView = 'game' | 'news' | 'history' | 'ask-ai' | 'ranking'
 
 export default function Home() {
   const { phase, startSetup } = useGameStore()
   const { initialize, user, initialized } = useAuthStore()
-  const [showHistory, setShowHistory] = useState(false)
+  const [view, setView] = useState<AppView>('game')
   const [guestMode, setGuestMode] = useState(false)
 
   useEffect(() => {
-    // マジックリンクのURLパラメータを処理（PKCE フロー対応）
     const params = new URLSearchParams(window.location.search)
     const tokenHash = params.get('token_hash')
     const type = params.get('type')
     if (tokenHash && type && supabase) {
       supabase.auth.verifyOtp({ token_hash: tokenHash, type: type as 'email' | 'magiclink' })
-        .then(() => {
-          window.history.replaceState({}, '', '/')
-        })
+        .then(() => { window.history.replaceState({}, '', '/') })
     }
     initialize()
   }, [])
 
-  // ログアウト or セッション切れでゲストモードもリセット
   useEffect(() => {
     if (initialized && !user) setGuestMode(false)
   }, [user, initialized])
 
-  // 初期化中はローディング
   if (!initialized) {
     return (
       <div className="min-h-screen bg-gray-950 flex items-center justify-center">
@@ -44,26 +45,51 @@ export default function Home() {
     )
   }
 
-  // 未ログイン かつ ゲストモードでない場合はログイン画面
   if (!user && !guestMode) {
     return <LoginScreen onGuest={() => setGuestMode(true)} />
   }
 
-  if (showHistory) {
-    return (
-      <HistoryScreen
-        onBack={() => setShowHistory(false)}
-        onPlay={() => { setShowHistory(false); startSetup() }}
-      />
-    )
+  function handleTab(tab: NavTab) {
+    if (tab === 'home') setView('game')
+    else setView(tab as AppView)
   }
 
-  const historyProps = { onShowHistory: () => setShowHistory(true) }
+  const activeTab: NavTab =
+    view === 'news'    ? 'news'
+    : view === 'history' ? 'history'
+    : view === 'ask-ai'  ? 'ask-ai'
+    : view === 'ranking' ? 'ranking'
+    : 'home'
 
-  if (phase === 'start')    return <StartScreen {...historyProps} />
-  if (phase === 'setup')    return <SetupScreen />
-  if (phase === 'playing')  return <GameScreen {...historyProps} />
-  if (phase === 'gameover') return <GameOverScreen {...historyProps} />
+  const navProps = {
+    onShowHistory: () => setView('history'),
+    onShowRanking: () => setView('ranking'),
+  }
 
-  return <StartScreen {...historyProps} />
+  return (
+    <div className="pb-16">
+      {view === 'news' ? (
+        <NewsScreen />
+      ) : view === 'history' ? (
+        <HistoryScreen
+          onBack={() => setView('game')}
+          onPlay={() => { setView('game'); startSetup() }}
+        />
+      ) : view === 'ranking' ? (
+        <RankingScreen onBack={() => setView('game')} />
+      ) : view === 'ask-ai' ? (
+        <AskAIScreen />
+      ) : (
+        <>
+          {phase === 'start'    && <StartScreen    {...navProps} />}
+          {phase === 'setup'    && <SetupScreen />}
+          {phase === 'playing'  && <GameScreen     {...navProps} />}
+          {phase === 'gameover' && <GameOverScreen {...navProps} />}
+          {!['start','setup','playing','gameover'].includes(phase) && <StartScreen {...navProps} />}
+        </>
+      )}
+
+      <BottomNav active={activeTab} onTab={handleTab} />
+    </div>
+  )
 }

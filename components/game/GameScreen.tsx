@@ -16,9 +16,10 @@ const INDUSTRY_EMOJI: Record<string, string> = {
 
 interface Props {
   onShowHistory: () => void
+  onShowRanking: () => void
 }
 
-export default function GameScreen({ onShowHistory }: Props) {
+export default function GameScreen({ onShowHistory, onShowRanking }: Props) {
   const store = useGameStore()
   const { company, turn, maxTurns, financials, endTurn, stockHistory, difficulty } = store
   const { resetGame, startSetup } = store
@@ -139,7 +140,7 @@ export default function GameScreen({ onShowHistory }: Props) {
                 <div className="text-xs font-bold" style={{ color: company.color }}>{quarter} / {year}</div>
                 <div className="text-white font-black text-sm">{turn - 1}<span className="text-gray-500 font-normal text-xs">/{maxTurns}</span></div>
               </div>
-              <UserMenu onShowHistory={onShowHistory} />
+              <UserMenu onShowHistory={onShowHistory} onShowRanking={onShowRanking} />
             </div>
           </div>
 

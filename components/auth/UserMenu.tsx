@@ -1,14 +1,17 @@
 'use client'
 import { useState } from 'react'
 import { useAuthStore } from '@/store/authStore'
+import GlossaryModal from '@/components/game/GlossaryModal'
 
 interface Props {
   onShowHistory: () => void
+  onShowRanking: () => void
 }
 
-export default function UserMenu({ onShowHistory }: Props) {
+export default function UserMenu({ onShowHistory, onShowRanking }: Props) {
   const { user, signOut } = useAuthStore()
   const [open, setOpen] = useState(false)
+  const [showGlossary, setShowGlossary] = useState(false)
 
   if (!user) return null
 
@@ -47,6 +50,18 @@ export default function UserMenu({ onShowHistory }: Props) {
               📊 プレイ履歴
             </button>
             <button
+              onClick={() => { setOpen(false); onShowRanking() }}
+              className="w-full text-left px-4 py-3 text-gray-300 hover:bg-gray-800 text-sm transition-colors"
+            >
+              🏆 世界ランキング
+            </button>
+            <button
+              onClick={() => { setOpen(false); setShowGlossary(true) }}
+              className="w-full text-left px-4 py-3 text-gray-300 hover:bg-gray-800 text-sm transition-colors"
+            >
+              📖 用語集
+            </button>
+            <button
               onClick={() => { setOpen(false); signOut() }}
               className="w-full text-left px-4 py-3 text-red-400 hover:bg-gray-800 text-sm transition-colors border-t border-gray-800"
             >
@@ -55,6 +70,7 @@ export default function UserMenu({ onShowHistory }: Props) {
           </div>
         </>
       )}
+      {showGlossary && <GlossaryModal onClose={() => setShowGlossary(false)} />}
     </div>
   )
 }

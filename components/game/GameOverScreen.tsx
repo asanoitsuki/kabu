@@ -1,10 +1,11 @@
 'use client'
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useGameStore } from '@/store/gameStore'
 import { useAuthStore } from '@/store/authStore'
-import { cloudSaveGame } from '@/lib/cloudSave'
+import { cloudSaveGame, saveGameResult } from '@/lib/cloudSave'
 import { getRating, formatMoney } from '@/lib/gameLogic'
 import StockChart from './StockChart'
+import AdBanner from '@/components/AdBanner'
 
 const GRADE_CONFIG: Record<string, { color: string; bg: string; border: string; emoji: string }> = {
   S: { color: 'text-yellow-400',  bg: 'from-yellow-950 to-amber-950',   border: 'border-yellow-700',  emoji: '👑' },
@@ -17,12 +18,16 @@ const GRADE_CONFIG: Record<string, { color: string; bg: string; border: string; 
 
 interface Props {
   onShowHistory: () => void
+  onShowRanking: () => void
 }
 
-export default function GameOverScreen({ onShowHistory }: Props) {
+export default function GameOverScreen({ onShowHistory, onShowRanking }: Props) {
   const { company, stockHistory, financials, reports, resetGame, startSetup, difficulty } = useGameStore()
   const { user } = useAuthStore()
   const savedRef = useRef(false)
+  const [sharing, setSharing] = useState(false)
+  const [copied, setCopied] = useState(false)
+  const [shareUrl, setShareUrl] = useState('')
 
   if (!company) return null
 
@@ -53,13 +58,56 @@ export default function GameOverScreen({ onShowHistory }: Props) {
       })
     }
 
-    // ゲーム終了状態をクラウドに保存（1回だけ）
-    if (user && !savedRef.current) {
-      savedRef.current = true
+    // ゲーム終了状態をクラウドに保存（リロードしても1回だけ）
+    if (user) {
       const state = useGameStore.getState()
-      cloudSaveGame(user.id, state)
+      const saveKey = `result_saved_${user.id}_${state.company?.name}_${state.turn}`
+      if (!localStorage.getItem(saveKey)) {
+        localStorage.setItem(saveKey, '1')
+        const displayName = user.user_metadata?.full_name ?? user.email ?? '匿名'
+        cloudSaveGame(user.id, state)
+        saveGameResult(user.id, displayName, state)
+      }
     }
   }, [])
+
+  async function handleShare() {
+    if (!company) return
+    setSharing(true)
+    try {
+      const qs = new URLSearchParams({
+        grade,
+        company: company.name,
+        ret: totalReturn,
+        industry: company.industry,
+        difficulty,
+      })
+      const base = 'https://kabu-three.vercel.app'
+      const url = `${base}/result?${qs}`
+      setShareUrl(url)
+      const imageApiUrl = `${base}/api/og/result?${qs}`
+      const text = `「${company.name}」を経営して${grade}ランク達成！株価${Number(totalReturn) >= 0 ? '+' : ''}${totalReturn}%\n#株式会社シミュレーター`
+
+      const imgRes = await fetch(imageApiUrl)
+      const blob = await imgRes.blob()
+      const file = new File([blob], 'result.png', { type: 'image/png' })
+      const companyName = company.name
+
+      if ((navigator as any).canShare?.({ files: [file] })) {
+        await navigator.share({ files: [file], text, url, title: `${companyName} − ${grade}ランク！` })
+      } else if (navigator.share) {
+        await navigator.share({ title: `${companyName} − ${grade}ランク！`, text, url })
+      } else {
+        await navigator.clipboard.writeText(`${text}\n${url}`)
+        setCopied(true)
+        setTimeout(() => setCopied(false), 2500)
+      }
+    } catch {
+      // キャンセルまたはエラー
+    } finally {
+      setSharing(false)
+    }
+  }
 
   return (
     <div className="min-h-screen bg-gray-950 text-white p-4">
@@ -123,12 +171,37 @@ export default function GameOverScreen({ onShowHistory }: Props) {
           ))}
         </div>
 
-        <div className="bg-gray-900 rounded-2xl p-4 border border-gray-800">
-          <div className="text-gray-400 text-xs font-bold mb-2">シェアする</div>
-          <p className="text-gray-300 text-sm leading-relaxed">
-            「{company.name}」を経営して{grade}ランク達成！株価{Number(totalReturn) >= 0 ? '+' : ''}{totalReturn}%{'\n'}#株式会社シミュレーター
-          </p>
-        </div>
+        <button
+          onClick={handleShare}
+          disabled={sharing}
+          className="w-full flex items-center justify-center gap-3 bg-gray-900 hover:bg-gray-800 border border-gray-700 hover:border-indigo-600 text-white font-bold py-4 rounded-2xl text-sm transition-all active:scale-95 disabled:opacity-60"
+        >
+          {sharing ? (
+            <span className="text-gray-400">画像を生成中...</span>
+          ) : copied ? (
+            <><span className="text-emerald-400">✓</span><span className="text-emerald-400">リンクをコピーしました</span></>
+          ) : (
+            <><span className="text-xl">🖼️</span><span>結果カードをシェアする</span></>
+          )}
+        </button>
+
+        {shareUrl && (
+          <div className="flex items-center gap-2 bg-gray-900 border border-gray-800 rounded-xl px-3 py-2">
+            <span className="text-gray-500 text-xs flex-1 truncate">{shareUrl}</span>
+            <button
+              onClick={async () => {
+                await navigator.clipboard.writeText(shareUrl)
+                setCopied(true)
+                setTimeout(() => setCopied(false), 2000)
+              }}
+              className="text-xs text-indigo-400 hover:text-indigo-300 font-bold flex-shrink-0 transition-colors"
+            >
+              {copied ? '✓' : 'コピー'}
+            </button>
+          </div>
+        )}
+
+        <AdBanner slot="7291202236" />
 
         <div className="space-y-3">
           <button
@@ -136,6 +209,12 @@ export default function GameOverScreen({ onShowHistory }: Props) {
             className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-black py-4 rounded-2xl text-lg transition-all hover:scale-105 active:scale-95"
           >
             🚀 新しい会社を設立する
+          </button>
+          <button
+            onClick={onShowRanking}
+            className="w-full bg-gray-900 hover:bg-gray-800 border border-gray-700 hover:border-yellow-700 text-white font-bold py-3 rounded-2xl text-sm transition-all"
+          >
+            🏆 世界ランキングを見る
           </button>
           <button
             onClick={resetGame}

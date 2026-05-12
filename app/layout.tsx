@@ -35,7 +35,14 @@ export const metadata: Metadata = {
     description: '社名を決めてIPO上場。20ターンの経営判断で株価を最大化する無料ブラウザゲーム。登録不要・即プレイ。',
     images: [`${BASE_URL}/og`],
   },
+  icons: {
+    icon: '/building-icon.svg',
+    apple: '/building-icon.svg',
+  },
   metadataBase: new URL(BASE_URL),
+  other: {
+    'google-adsense-account': 'ca-pub-9474313759444287',
+  },
 };
 
 export default function RootLayout({

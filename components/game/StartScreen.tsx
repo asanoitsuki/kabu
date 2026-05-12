@@ -1,11 +1,14 @@
 'use client'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useGameStore } from '@/store/gameStore'
 import { useAuthStore } from '@/store/authStore'
 import { cloudLoadGame, loadAllSaves } from '@/lib/cloudSave'
 import { GameState } from '@/lib/types'
 import AuthModal from '@/components/auth/AuthModal'
 import UserMenu from '@/components/auth/UserMenu'
+import AdBanner from '@/components/AdBanner'
+import GlossaryModal from '@/components/game/GlossaryModal'
+import Image from 'next/image'
 
 const TICKER = [
   { name: 'テックスター', price: '¥4,280', change: '+328%', up: true },
@@ -17,14 +20,17 @@ const TICKER = [
 
 interface Props {
   onShowHistory: () => void
+  onShowRanking: () => void
 }
 
-export default function StartScreen({ onShowHistory }: Props) {
+
+export default function StartScreen({ onShowHistory, onShowRanking }: Props) {
   const { startSetup, resetGame, phase, loadFromCloud } = useGameStore()
   const { user, initialized } = useAuthStore()
   const [showAuth, setShowAuth] = useState(false)
   const [cloudSave, setCloudSave] = useState<GameState | null>(null)
   const [checkingCloud, setCheckingCloud] = useState(false)
+  const [showGlossary, setShowGlossary] = useState(false)
 
   // 進行中セーブ確認
   useEffect(() => {
@@ -99,27 +105,17 @@ export default function StartScreen({ onShowHistory }: Props) {
         </div>
       </div>
 
-      {/* ナビバー（ログイン・ユーザーメニュー） */}
+      {/* ナビバー（ログイン・ユーザーメニューのみ） */}
       <div className="absolute top-12 right-4 z-20 flex items-center gap-2">
         {initialized && (
-          user ? (
-            <>
-              <button
-                onClick={onShowHistory}
-                className="text-gray-400 hover:text-white text-xs px-3 py-1.5 rounded-lg border border-gray-800 hover:border-gray-600 transition-colors"
+          user
+            ? <UserMenu onShowHistory={onShowHistory} onShowRanking={onShowRanking} />
+            : <button
+                onClick={() => setShowAuth(true)}
+                className="text-gray-300 hover:text-white text-xs px-3 py-1.5 rounded-lg border border-gray-700 hover:border-indigo-500 transition-colors"
               >
-                📊 履歴
+                🔐 ログイン
               </button>
-              <UserMenu onShowHistory={onShowHistory} />
-            </>
-          ) : (
-            <button
-              onClick={() => setShowAuth(true)}
-              className="text-gray-300 hover:text-white text-xs px-3 py-1.5 rounded-lg border border-gray-700 hover:border-indigo-500 transition-colors"
-            >
-              🔐 ログイン
-            </button>
-          )
         )}
       </div>
 
@@ -129,8 +125,14 @@ export default function StartScreen({ onShowHistory }: Props) {
 
           {/* ロゴ */}
           <div className="mb-6">
-            <div className="inline-flex items-center justify-center w-24 h-24 rounded-3xl bg-indigo-600 text-5xl shadow-2xl shadow-indigo-900/60 mb-5">
-              📈
+            <div className="relative inline-block w-28 h-28 rounded-3xl overflow-hidden shadow-2xl shadow-indigo-900/60 mb-5 ring-2 ring-indigo-500/40">
+              <Image
+                src="/building.jpg"
+                alt="株式会社シミュレーター"
+                fill
+                className="object-cover object-center"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-indigo-900/60 via-transparent to-transparent" />
             </div>
             <h1 className="text-5xl sm:text-6xl font-black text-white tracking-tight leading-tight">
               株式会社<br />
@@ -216,10 +218,25 @@ export default function StartScreen({ onShowHistory }: Props) {
               セーブデータをリセット
             </button>
           )}
+
+          {/* 用語集 */}
+          <div className="mt-6 max-w-sm mx-auto w-full">
+            <button
+              onClick={() => setShowGlossary(true)}
+              className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-2xl bg-gray-900/60 border border-gray-800 hover:border-indigo-700 transition-colors text-sm text-gray-400 hover:text-white"
+            >
+              📖 ゲーム用語を確認する
+            </button>
+          </div>
         </div>
       </div>
 
+      <div className="relative z-10 px-4 pb-4">
+        <AdBanner slot="7291202236" />
+      </div>
+
       {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
+      {showGlossary && <GlossaryModal onClose={() => setShowGlossary(false)} />}
 
       <style>{`
         @keyframes float {
