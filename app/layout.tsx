@@ -51,16 +51,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
+    
     <html
       lang="ja"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <Script
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9474313759444287"
-          crossOrigin="anonymous"
-          strategy="beforeInteractive"
-        />
         {children}
         <footer className="text-center py-4 text-gray-700 text-xs">
           <Link href="/privacy" className="hover:text-gray-500 transition-colors">プライバシーポリシー</Link>
