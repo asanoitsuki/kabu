@@ -12,8 +12,9 @@ import HistoryScreen from '@/components/game/HistoryScreen'
 import RankingScreen from '@/components/game/RankingScreen'
 import BottomNav, { NavTab } from '@/components/BottomNav'
 import NewsScreen from '@/components/game/NewsScreen'
+import AchievementsScreen from '@/components/game/AchievementsScreen'
 
-type AppView = 'game' | 'news' | 'history' | 'ranking'
+type AppView = 'game' | 'news' | 'history' | 'badges' | 'ranking'
 
 export default function Home() {
   const { phase, startSetup } = useGameStore()
@@ -56,6 +57,7 @@ export default function Home() {
   const activeTab: NavTab =
     view === 'news'    ? 'news'
     : view === 'history' ? 'history'
+    : view === 'badges'  ? 'badges'
     : view === 'ranking' ? 'ranking'
     : 'home'
 
@@ -75,6 +77,8 @@ export default function Home() {
         />
       ) : view === 'ranking' ? (
         <RankingScreen onBack={() => setView('game')} />
+      ) : view === 'badges' ? (
+        <AchievementsScreen />
       ) : (
         <>
           {phase === 'start'    && <StartScreen    {...navProps} />}

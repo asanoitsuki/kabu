@@ -1,4 +1,12 @@
 export type Industry = 'IT' | '製造' | '飲食' | '金融' | 'エンタメ'
+
+export interface Achievement {
+  id: string
+  title: string
+  description: string
+  icon: string
+  rarity: 'common' | 'rare' | 'epic' | 'legendary'
+}
 export type Difficulty = 'easy' | 'normal' | 'hard' | 'hell'
 
 export interface Company {

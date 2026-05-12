@@ -4,6 +4,8 @@ import { useGameStore } from '@/store/gameStore'
 import { useAuthStore } from '@/store/authStore'
 import { cloudSaveGame, saveGameResult } from '@/lib/cloudSave'
 import { getRating, formatMoney } from '@/lib/gameLogic'
+import { checkAchievements } from '@/lib/achievements'
+import { useAchievementStore } from '@/store/achievementStore'
 import StockChart from './StockChart'
 import AdBanner from '@/components/AdBanner'
 
@@ -24,6 +26,7 @@ interface Props {
 export default function GameOverScreen({ onShowHistory, onShowRanking }: Props) {
   const { company, stockHistory, financials, reports, resetGame, startSetup, difficulty } = useGameStore()
   const { user } = useAuthStore()
+  const { unlockedIds, newIds, unlock, recordPlay, totalPlays, playedIndustries } = useAchievementStore()
   const savedRef = useRef(false)
   const [sharing, setSharing] = useState(false)
   const [copied, setCopied] = useState(false)
@@ -59,8 +62,19 @@ export default function GameOverScreen({ onShowHistory, onShowRanking }: Props) 
     }
 
     // ゲーム終了状態をクラウドに保存（リロードしても1回だけ）
+    // 実績チェック
+    const state = useGameStore.getState()
+    const lowestReturn = Math.min(...state.stockHistory.map(h => (h.price - state.stockHistory[0].price) / state.stockHistory[0].price))
+    recordPlay(company.industry)
+    const newAchievements = checkAchievements(
+      state, unlockedIds,
+      totalPlays + 1,
+      [...new Set([...playedIndustries, company.industry])],
+      lowestReturn,
+    )
+    unlock(newAchievements)
+
     if (user) {
-      const state = useGameStore.getState()
       const saveKey = `result_saved_${user.id}_${state.company?.name}_${state.turn}`
       if (!localStorage.getItem(saveKey)) {
         localStorage.setItem(saveKey, '1')
