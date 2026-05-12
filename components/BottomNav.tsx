@@ -1,6 +1,6 @@
 'use client'
 
-export type NavTab = 'news' | 'history' | 'ask-ai' | 'ranking' | 'home'
+export type NavTab = 'news' | 'history' | 'ranking' | 'home'
 
 interface Props {
   active: NavTab
@@ -10,7 +10,6 @@ interface Props {
 const TABS: { id: NavTab; emoji: string; label: string }[] = [
   { id: 'news',     emoji: '📰', label: 'ニュース' },
   { id: 'history',  emoji: '📊', label: '履歴' },
-  { id: 'ask-ai',   emoji: '🤖', label: 'Ask AI' },
   { id: 'ranking',  emoji: '🏆', label: 'ランキング' },
   { id: 'home',     emoji: '🏠', label: 'ホーム' },
 ]
