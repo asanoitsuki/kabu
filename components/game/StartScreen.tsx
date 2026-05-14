@@ -5,12 +5,10 @@ import { useAuthStore } from '@/store/authStore'
 import { useAchievementStore, calcLevel } from '@/store/achievementStore'
 import { cloudLoadGame } from '@/lib/cloudSave'
 import { getProfile } from '@/lib/profile'
-import { getPendingCount } from '@/lib/friends'
 import { GameState } from '@/lib/types'
 import AuthModal from '@/components/auth/AuthModal'
 import AdBanner from '@/components/AdBanner'
 import GlossaryModal from '@/components/game/GlossaryModal'
-import ProfileScreen from '@/components/auth/ProfileScreen'
 import Image from 'next/image'
 
 const TICKER = [
@@ -33,10 +31,8 @@ export default function StartScreen({ onShowHistory, onShowRanking }: Props) {
   const [showAuth, setShowAuth] = useState(false)
   const [cloudSave, setCloudSave] = useState<GameState | null>(null)
   const [showGlossary, setShowGlossary] = useState(false)
-  const [showProfile, setShowProfile] = useState(false)
   const [profileAvatar, setProfileAvatar] = useState('😊')
   const [profileName, setProfileName] = useState('')
-  const [pendingFriends, setPendingFriends] = useState(0)
 
   useEffect(() => {
     if (!user) { setCloudSave(null); return }
@@ -47,33 +43,10 @@ export default function StartScreen({ onShowHistory, onShowRanking }: Props) {
         setProfileName(p.username ?? '')
       }
     })
-    getPendingCount(user.id).then(setPendingFriends)
   }, [user])
 
   function handleContinue() {
     if (cloudSave) loadFromCloud(cloudSave)
-  }
-
-  // プロフィール閉じた後にアバター等を再取得
-  function handleProfileClose() {
-    setShowProfile(false)
-    if (user) {
-      getProfile(user.id).then(p => {
-        if (p) {
-          setProfileAvatar(p.avatar ?? '😊')
-          setProfileName(p.username ?? '')
-        }
-      })
-      getPendingCount(user.id).then(setPendingFriends)
-    }
-  }
-
-  if (showProfile) {
-    return (
-      <div className="min-h-screen bg-gray-950">
-        <ProfileScreen onClose={handleProfileClose} />
-      </div>
-    )
   }
 
   return (
@@ -133,25 +106,17 @@ export default function StartScreen({ onShowHistory, onShowRanking }: Props) {
         </div>
       </div>
 
-      {/* ログイン・プロフィールボタン */}
+      {/* ログイン・ユーザー情報 */}
       <div className="absolute top-12 right-4 z-20">
         {initialized && (
           user ? (
-            <button
-              onClick={() => setShowProfile(true)}
-              className="relative flex items-center gap-2 bg-gray-900 hover:bg-gray-800 border border-gray-700 hover:border-indigo-600 rounded-2xl px-3 py-2 transition-all"
-            >
-              <span className="text-2xl">{profileAvatar}</span>
-              <div className="text-left hidden sm:block">
+            <div className="flex items-center gap-2 bg-gray-900/80 border border-gray-800 rounded-2xl px-3 py-2">
+              <span className="text-xl">{profileAvatar}</span>
+              <div className="hidden sm:block">
                 <div className="text-white font-bold text-xs leading-tight">{profileName || 'プロフィール'}</div>
                 <div className="text-indigo-400 text-xs">Lv.{calcLevel(xp)}</div>
               </div>
-              {pendingFriends > 0 && (
-                <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-red-500 rounded-full text-[10px] flex items-center justify-center font-black text-white px-1">
-                  {pendingFriends}
-                </span>
-              )}
-            </button>
+            </div>
           ) : (
             <button
               onClick={() => setShowAuth(true)}
@@ -251,7 +216,7 @@ export default function StartScreen({ onShowHistory, onShowRanking }: Props) {
 
           {initialized && user && (
             <p className="text-gray-500 text-sm mt-3">
-              {profileName || user.user_metadata?.full_name || user.email} でログイン中
+              {profileAvatar} {profileName || user.user_metadata?.full_name || user.email} でログイン中
             </p>
           )}
 

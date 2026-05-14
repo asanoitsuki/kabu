@@ -4,6 +4,7 @@ import { getRating } from './gameLogic'
 
 export interface RankingEntry {
   id: string
+  user_id: string
   display_name: string
   company_name: string
   industry: string
@@ -14,6 +15,9 @@ export interface RankingEntry {
   total_return: number
   turns_played: number
   played_at: string
+  // プロフィールから補完
+  profile_username?: string
+  profile_avatar?: string
 }
 
 export interface SaveSlot {
@@ -136,6 +140,21 @@ export async function saveGameResult(
   })
 }
 
+async function overlayProfiles(entries: RankingEntry[]): Promise<RankingEntry[]> {
+  if (!supabase || entries.length === 0) return entries
+  const userIds = [...new Set(entries.map(e => e.user_id).filter(Boolean))]
+  if (userIds.length === 0) return entries
+  const { data: profiles } = await supabase
+    .from('profiles')
+    .select('id,username,avatar')
+    .in('id', userIds)
+  const map = new Map((profiles ?? []).map((p: any) => [p.id, p]))
+  return entries.map(e => {
+    const p = map.get(e.user_id) as any
+    return { ...e, profile_username: p?.username ?? undefined, profile_avatar: p?.avatar ?? undefined }
+  })
+}
+
 export async function fetchRankings(opts?: {
   difficulty?: string
   industry?: string
@@ -144,7 +163,7 @@ export async function fetchRankings(opts?: {
   if (!supabase) return []
   let query = supabase
     .from('game_results')
-    .select('id,display_name,company_name,industry,difficulty,grade,ipo_price,final_price,total_return,turns_played,played_at')
+    .select('id,user_id,display_name,company_name,industry,difficulty,grade,ipo_price,final_price,total_return,turns_played,played_at')
     .order('total_return', { ascending: false })
     .limit(opts?.limit ?? 100)
 
@@ -152,7 +171,7 @@ export async function fetchRankings(opts?: {
   if (opts?.industry)   query = query.eq('industry',   opts.industry)
 
   const { data } = await query
-  return (data as RankingEntry[]) ?? []
+  return overlayProfiles((data as RankingEntry[]) ?? [])
 }
 
 export async function fetchLocalRankings(
@@ -181,7 +200,7 @@ export async function fetchLocalRankings(
 
   let query = supabase
     .from('game_results')
-    .select('id,display_name,company_name,industry,difficulty,grade,ipo_price,final_price,total_return,turns_played,played_at')
+    .select('id,user_id,display_name,company_name,industry,difficulty,grade,ipo_price,final_price,total_return,turns_played,played_at')
     .order('total_return', { ascending: false })
     .range(offset, offset + 11)
 
@@ -189,5 +208,6 @@ export async function fetchLocalRankings(
   if (opts?.industry)   query = query.eq('industry',   opts.industry)
 
   const { data } = await query
-  return { entries: (data as RankingEntry[]) ?? [], userRank }
+  const entries = await overlayProfiles((data as RankingEntry[]) ?? [])
+  return { entries, userRank }
 }

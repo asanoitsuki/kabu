@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { useGameStore } from '@/store/gameStore'
 import { useAuthStore } from '@/store/authStore'
 import { supabase } from '@/lib/supabase'
+import { getPendingCount } from '@/lib/friends'
 import LoginScreen from '@/components/auth/LoginScreen'
 import StartScreen from '@/components/game/StartScreen'
 import SetupScreen from '@/components/game/SetupScreen'
@@ -12,14 +13,16 @@ import HistoryScreen from '@/components/game/HistoryScreen'
 import RankingScreen from '@/components/game/RankingScreen'
 import BottomNav, { NavTab } from '@/components/BottomNav'
 import AchievementsScreen from '@/components/game/AchievementsScreen'
+import ProfileScreen from '@/components/auth/ProfileScreen'
 
-type AppView = 'game' | 'history' | 'badges' | 'ranking'
+type AppView = 'game' | 'profile' | 'history' | 'badges' | 'ranking'
 
 export default function Home() {
   const { phase, startSetup, resetGame } = useGameStore()
   const { initialize, user, initialized } = useAuthStore()
   const [view, setView] = useState<AppView>('game')
   const [guestMode, setGuestMode] = useState(false)
+  const [pendingFriends, setPendingFriends] = useState(0)
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
@@ -36,6 +39,15 @@ export default function Home() {
     if (initialized && !user) setGuestMode(false)
   }, [user, initialized])
 
+  // フレンド通知バッジ（30秒ごとにポーリング）
+  useEffect(() => {
+    if (!user) return
+    const refresh = () => getPendingCount(user.id).then(setPendingFriends)
+    refresh()
+    const timer = setInterval(refresh, 30000)
+    return () => clearInterval(timer)
+  }, [user])
+
   if (!initialized) {
     return (
       <div className="min-h-screen bg-gray-950 flex items-center justify-center">
@@ -49,23 +61,22 @@ export default function Home() {
   }
 
   function handleTab(tab: NavTab) {
-    if (tab === 'home') {
+    if (tab === 'startup') {
+      // 起業タブ → ゲーム画面（現在のフェーズに戻る or スタート画面）
       setView('game')
-    } else if (tab === 'startup') {
-      // 起業タブ → 会社設立フローへ
-      setView('game')
-      resetGame()
-      startSetup()
+    } else if (tab === 'profile') {
+      setView('profile')
     } else {
       setView(tab as AppView)
     }
   }
 
   const activeTab: NavTab =
-    view === 'history' ? 'history'
+    view === 'profile' ? 'profile'
+    : view === 'history' ? 'history'
     : view === 'badges'  ? 'badges'
     : view === 'ranking' ? 'ranking'
-    : (phase === 'setup' ? 'startup' : 'home')
+    : 'startup'
 
   const navProps = {
     onShowHistory: () => setView('history'),
@@ -74,7 +85,9 @@ export default function Home() {
 
   return (
     <div className="pb-16">
-      {view === 'history' ? (
+      {view === 'profile' ? (
+        <ProfileScreen onClose={() => setView('game')} />
+      ) : view === 'history' ? (
         <HistoryScreen
           onBack={() => setView('game')}
           onPlay={() => { setView('game'); startSetup() }}
@@ -93,7 +106,7 @@ export default function Home() {
         </>
       )}
 
-      <BottomNav active={activeTab} onTab={handleTab} />
+      <BottomNav active={activeTab} onTab={handleTab} pendingFriends={pendingFriends} />
     </div>
   )
 }

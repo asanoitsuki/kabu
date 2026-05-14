@@ -29,6 +29,8 @@ interface Props { onBack: () => void }
 function EntryRow({
   entry, rank, isMe,
 }: { entry: RankingEntry; rank: number; isMe: boolean }) {
+  const playerName = entry.profile_username || entry.display_name || '匿名'
+  const avatar = entry.profile_avatar || '😊'
   return (
     <div
       className={`border rounded-2xl p-4 flex items-center gap-3 transition-all ${
@@ -46,17 +48,20 @@ function EntryRow({
           : <span className="text-gray-500 text-sm font-bold">{rank}</span>
         }
       </div>
+      {/* アバター */}
+      <div className="text-xl flex-shrink-0">{avatar}</div>
       <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
           <span className="text-sm">{INDUSTRY_EMOJI[entry.industry] ?? '🏢'}</span>
-          <span className="font-bold text-sm truncate">{entry.company_name}</span>
-          {isMe && <span className="text-xs text-indigo-400 font-bold flex-shrink-0">← YOU</span>}
+          <span className="font-black text-sm truncate">{entry.company_name}</span>
+          {isMe && <span className="text-xs text-indigo-400 font-bold flex-shrink-0">YOU</span>}
         </div>
+        <div className="text-gray-500 text-xs truncate mt-0.5">{playerName}</div>
       </div>
       <div className={`text-xs font-black px-2 py-1 rounded-lg border flex-shrink-0 ${GRADE_COLOR[entry.grade] ?? 'text-gray-400 bg-gray-800 border-gray-700'}`}>
         {entry.grade}
       </div>
-      <div className="text-right flex-shrink-0 min-w-[60px]">
+      <div className="text-right flex-shrink-0 min-w-[56px]">
         <div className={`font-black text-sm ${entry.total_return >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
           {entry.total_return >= 0 ? '+' : ''}{entry.total_return}%
         </div>

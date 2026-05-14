@@ -1,22 +1,22 @@
 'use client'
 
-export type NavTab = 'startup' | 'history' | 'badges' | 'ranking' | 'home'
+export type NavTab = 'startup' | 'history' | 'badges' | 'ranking' | 'profile'
 
 interface Props {
   active: NavTab
   onTab: (tab: NavTab) => void
-  friendBadge?: number
+  pendingFriends?: number
 }
 
 const TABS: { id: NavTab; emoji: string; label: string }[] = [
-  { id: 'startup',  emoji: '🏢', label: '起業' },
-  { id: 'history',  emoji: '📊', label: '履歴' },
-  { id: 'badges',   emoji: '🏅', label: '実績' },
-  { id: 'ranking',  emoji: '🏆', label: 'ランキング' },
-  { id: 'home',     emoji: '🏠', label: 'ホーム' },
+  { id: 'startup', emoji: '🏢', label: '起業' },
+  { id: 'history', emoji: '📊', label: '履歴' },
+  { id: 'badges',  emoji: '🏅', label: '実績' },
+  { id: 'ranking', emoji: '🏆', label: 'ランキング' },
+  { id: 'profile', emoji: '👤', label: 'プロフィール' },
 ]
 
-export default function BottomNav({ active, onTab, friendBadge = 0 }: Props) {
+export default function BottomNav({ active, onTab, pendingFriends = 0 }: Props) {
   return (
     <div
       className="fixed bottom-0 left-0 right-0 z-40 bg-gray-950/95 backdrop-blur-md border-t border-gray-800"
@@ -36,6 +36,11 @@ export default function BottomNav({ active, onTab, friendBadge = 0 }: Props) {
               )}
               <span className={`text-xl transition-all relative ${isActive ? 'scale-110' : 'opacity-50'}`}>
                 {emoji}
+                {id === 'profile' && pendingFriends > 0 && (
+                  <span className="absolute -top-1 -right-1 min-w-[14px] h-[14px] bg-red-500 rounded-full text-[9px] flex items-center justify-center font-black text-white px-0.5">
+                    {pendingFriends}
+                  </span>
+                )}
               </span>
               <span className={`text-[10px] font-bold transition-colors ${isActive ? 'text-indigo-400' : 'text-gray-600'}`}>
                 {label}
