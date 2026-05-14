@@ -2,7 +2,7 @@ import type { CapacitorConfig } from '@capacitor/cli'
 
 const config: CapacitorConfig = {
   // アプリ名（App Store表示名）
-  appName: '起業シミュレーション',
+  appName: 'マイビズ',
   // バンドルID（後でApple Developer Portalで取得した値に変更）
   appId: 'com.startupstudio.app',
   // Next.js 静的ビルドの出力先
