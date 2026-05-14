@@ -48,8 +48,8 @@ export default function SetupScreen() {
   const canSubmit = canNext && industry !== null
 
   return (
-    <div className="min-h-screen bg-gray-950 flex items-center justify-center p-4">
-      <div className="w-full max-w-lg">
+    <div className="min-h-screen bg-gray-950 p-4 py-8">
+      <div className="w-full max-w-lg mx-auto">
 
         {/* ステップインジケーター */}
         <div className="flex items-center gap-2 mb-8">

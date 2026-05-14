@@ -2,7 +2,7 @@ const BANNED_WORDS: string[] = [
   "admin", "administrator", "root", "system", "master", "owner", "info", "support",
   "test", "guest", "user", "運営", "運営者", "管理", "管理者", "公式", "スタッフ",
   "システム", "テスト", "ゲスト", "null", "undefined", "nan", "dummy", "sample",
-  "password", "qwerty", "ああああ", "いいいい", "うううう", "ええええ", "おおおお",
+  "password", "qwerty",
   "script", "http", "https", "www", ".com", ".net", ".jp", "url",
   "ばか", "バカ", "アホ", "あほ", "クソ", "くそ", "糞", "ゴミ", "ごみ", "カス", "かす",
   "雑魚", "ざこ", "ザコ", "しね", "死ね", "シネ", "氏ね", "４ね", "タヒ", "殺す",
@@ -70,7 +70,9 @@ function normalize(s: string): string {
 export function detectBannedWord(name: string): string | null {
   const norm = normalize(name)
   for (const w of BANNED_WORDS) {
-    if (norm.includes(normalize(w))) return w
+    const normW = normalize(w)
+    if (normW.length < 2) continue  // 正規化後に1文字以下になるものはスキップ
+    if (norm.includes(normW)) return w
   }
   return null
 }
