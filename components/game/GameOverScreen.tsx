@@ -15,7 +15,8 @@ const GRADE_CONFIG: Record<string, { color: string; bg: string; border: string; 
   A: { color: 'text-emerald-400', bg: 'from-emerald-950 to-green-950',  border: 'border-emerald-700', emoji: '🏆' },
   B: { color: 'text-blue-400',    bg: 'from-blue-950 to-indigo-950',    border: 'border-blue-700',    emoji: '🥈' },
   C: { color: 'text-gray-300',    bg: 'from-gray-900 to-gray-800',      border: 'border-gray-700',    emoji: '📊' },
-  D: { color: 'text-orange-400',  bg: 'from-orange-950 to-red-950',     border: 'border-orange-800',  emoji: '📉' },
+  D: { color: 'text-orange-400',  bg: 'from-orange-950 to-amber-950',   border: 'border-orange-800',  emoji: '📉' },
+  E: { color: 'text-gray-400',    bg: 'from-gray-900 to-gray-800',      border: 'border-gray-700',    emoji: '😐' },
   F: { color: 'text-red-400',     bg: 'from-red-950 to-rose-950',       border: 'border-red-800',     emoji: '💀' },
 }
 

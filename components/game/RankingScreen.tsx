@@ -18,6 +18,7 @@ const GRADE_COLOR: Record<string, string> = {
   B: 'text-blue-400 bg-blue-950 border-blue-700',
   C: 'text-gray-300 bg-gray-900 border-gray-700',
   D: 'text-orange-400 bg-orange-950 border-orange-800',
+  E: 'text-gray-400 bg-gray-900 border-gray-700',
   F: 'text-red-400 bg-red-950 border-red-800',
 }
 const RANK_MEDAL = ['🥇', '🥈', '🥉']

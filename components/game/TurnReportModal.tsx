@@ -31,10 +31,10 @@ export default function TurnReportModal({ report, onClose }: Props) {
   }, [report.event])
 
   return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-[100]">
       <div
-        className="bg-gray-900 rounded-3xl max-w-sm w-full overflow-hidden shadow-2xl border border-gray-800"
-        style={{ animation: 'modalIn 0.3s cubic-bezier(0.34,1.56,0.64,1) both' }}
+        className="bg-gray-900 rounded-3xl max-w-sm w-full shadow-2xl border border-gray-800 overflow-y-auto"
+        style={{ animation: 'modalIn 0.3s cubic-bezier(0.34,1.56,0.64,1) both', maxHeight: '90dvh' }}
       >
         {/* ヘッダー */}
         <div className="bg-gradient-to-r from-gray-800 to-gray-900 px-6 pt-6 pb-4 text-center border-b border-gray-800">

@@ -947,14 +947,16 @@ export function getRating(
   if (stockHistory.length < 2) return { grade: 'C', message: 'データ不足' }
   const first = stockHistory[0].price
   const last  = stockHistory[stockHistory.length - 1].price
-  const growth = (last - first) / first
-  const cfg = DIFFICULTY_CONFIG[difficulty]
-  if (growth >= cfg.sRank)  return { grade: 'S', message: '神の采配。この難易度でSランクは伝説だ。' }
-  if (growth >= cfg.aRank)  return { grade: 'A', message: '優秀な経営者！市場の嵐を乗り越えた。' }
-  if (growth >= cfg.bRank)  return { grade: 'B', message: '堅実な経営。しっかり成長を達成！' }
-  if (growth >= cfg.cRank)  return { grade: 'C', message: '現状維持。嵐を乗り越えたが伸び悩んだ。' }
-  if (growth >= cfg.dRank)  return { grade: 'D', message: '業績悪化。逆風に負けてしまった。' }
-  return { grade: 'F', message: '経営破綻寸前。難易度を下げて再挑戦しよう！' }
+  // totalReturn は % 表示と同じ値（例: 500,000% = growth * 100 = 5000 * 100）
+  const pct = ((last - first) / first) * 100
+
+  if (pct >= 500_000) return { grade: 'S', message: '伝説の経営者。500,000%超えは人類の限界を超えた。' }
+  if (pct >= 300_000) return { grade: 'A', message: '超一流の采配。300,000%超えは真のトップ経営者だ。' }
+  if (pct >= 100_000) return { grade: 'B', message: '素晴らしい成長。100,000%超えは並外れた才能の証。' }
+  if (pct >=  50_000) return { grade: 'C', message: '優秀な経営。50,000%超えは上位プレイヤーの証。' }
+  if (pct >=   1_000) return { grade: 'D', message: '堅実な成長。1,000%超えで合格ライン。もっと上を目指せ！' }
+  if (pct >=       0) return { grade: 'E', message: 'プラスは保ったが成長は物足りない。戦略を見直そう。' }
+  return { grade: 'F', message: 'IPO割れ。株価がマイナスに転落してしまった…' }
 }
 
 /** 配分割合から各投資の効果を計算して返す（表示用） */

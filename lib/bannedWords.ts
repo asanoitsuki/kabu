@@ -22,18 +22,48 @@ const BANNED_WORDS: string[] = [
   "稼げる", "儲かる", "副業", "詐欺", "さぎ", "宣伝", "勧誘", "違法", "犯罪", "スパム",
 ]
 
-/** スペース除去・小文字化・全角→半角・カタカナ→ひらがな */
+/**
+ * 強力な正規化
+ * - 全角→半角 / カタカナ→ひらがな
+ * - あらゆる空白・記号・絵文字を除去
+ * - 数字→英字（leetspeak）変換
+ * - 繰り返し文字の圧縮（ちんんこ→ちんこ）
+ */
 function normalize(s: string): string {
-  return s
+  let r = s
     .toLowerCase()
     // 全角英数字 → 半角
     .replace(/[Ａ-Ｚａ-ｚ０-９]/g, c => String.fromCharCode(c.charCodeAt(0) - 0xFEE0))
-    // あらゆる空白を除去
-    .replace(/[\s　 ​‌‍﻿ ]/g, '')
     // カタカナ → ひらがな
     .replace(/[ァ-ヶ]/g, c => String.fromCharCode(c.charCodeAt(0) - 0x60))
-    // 長音符等を除去
-    .replace(/[ーｰ－\-]/g, '')
+    // 長音符・ハイフン系除去
+    .replace(/[ーｰ－\-~～]/g, '')
+    // 空白・不可視文字除去
+    .replace(/\s/g, '')
+    .replace(/　/g, '') // 全角スペース
+    // ASCII記号除去
+    .replace(/[!-\/:-@[-`{-~]/g, '')
+    // 全角記号除去
+    .replace(/[！-／：-＠「-｀｛-～。、・]/g, '')
+    // 絵文字・特殊記号除去（Unicode範囲）
+    .replace(/[ -⁯✀-➿⬀-⯿]/g, '')
+
+  // leetspeak: 数字→英字
+  r = r
+    .replace(/0/g, 'o')
+    .replace(/1/g, 'i')
+    .replace(/3/g, 'e')
+    .replace(/4/g, 'a')
+    .replace(/5/g, 's')
+    .replace(/6/g, 'b')
+    .replace(/7/g, 't')
+    .replace(/8/g, 'b')
+    .replace(/9/g, 'g')
+
+  // 繰り返し文字を1文字に圧縮（「しねぇぇぇ」→「しね」）
+  r = r.replace(/(.)\1+/g, '$1')
+
+  return r
 }
 
 /** 禁句ワードが含まれていればそのワードを返す。なければnull */
