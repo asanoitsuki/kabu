@@ -4,6 +4,7 @@ import { useGameStore } from '@/store/gameStore'
 import { Difficulty, Industry } from '@/lib/types'
 import { DIFFICULTY_CONFIG, INDUSTRY_COLORS, INDUSTRY_STATS } from '@/lib/gameLogic'
 import { generateCompanyName } from '@/lib/companyNames'
+import { Layers, Sparkles, Settings2, RefreshCw, Rocket, Check } from 'lucide-react'
 
 const INDUSTRIES: { id: Industry; emoji: string; desc: string; bg: string; flavor: string }[] = [
   { id: 'IT',     emoji: '💻', desc: '高成長・高PER。リスクと爆発力の業種',     bg: 'from-indigo-950 to-blue-950',    flavor: 'AIで世界を変える' },
@@ -68,7 +69,9 @@ export default function SetupScreen() {
         {step === 1 && (
           <div className="space-y-4">
             <div className="text-center mb-6">
-              <div className="text-4xl mb-3">🏗️</div>
+              <div className="w-16 h-16 rounded-2xl bg-indigo-950 border border-indigo-800 flex items-center justify-center mx-auto mb-3">
+                <Layers size={32} strokeWidth={1.5} className="text-indigo-400" />
+              </div>
               <h1 className="text-3xl font-black text-white">業種を選ぶ</h1>
               <p className="text-gray-500 mt-1">業種を選ぶと会社名が自動で決まります</p>
             </div>
@@ -115,7 +118,9 @@ export default function SetupScreen() {
         {step === 2 && industry && (
           <div className="space-y-5">
             <div className="text-center mb-6">
-              <div className="text-4xl mb-3">✨</div>
+              <div className="w-16 h-16 rounded-2xl bg-purple-950 border border-purple-800 flex items-center justify-center mx-auto mb-3">
+                <Sparkles size={32} strokeWidth={1.5} className="text-purple-400" />
+              </div>
               <h1 className="text-3xl font-black text-white">会社をカスタマイズ</h1>
               <p className="text-gray-500 mt-1">AIが会社名を決めました！</p>
             </div>
@@ -123,7 +128,7 @@ export default function SetupScreen() {
             {/* 生成された社名 */}
             <div className="bg-gray-900 border border-gray-700 rounded-2xl p-5 space-y-4">
               <div>
-                <div className="text-gray-400 text-xs font-semibold mb-2">🤖 AI生成 社名</div>
+                <div className="text-gray-400 text-xs font-semibold mb-2">AI生成 社名</div>
                 <div className="flex items-center gap-3">
                   <div
                     className="w-12 h-12 rounded-xl flex items-center justify-center text-xl font-black text-white shadow-lg flex-shrink-0"
@@ -137,9 +142,9 @@ export default function SetupScreen() {
                   </div>
                   <button
                     onClick={handleRegenerate}
-                    className="flex-shrink-0 bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white border border-gray-700 rounded-xl px-3 py-2 text-sm font-bold transition-all hover:scale-105 active:scale-95"
+                    className="flex-shrink-0 bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white border border-gray-700 rounded-xl p-2.5 text-sm font-bold transition-all hover:scale-105 active:scale-95"
                   >
-                    🔄
+                    <RefreshCw size={16} strokeWidth={2} />
                   </button>
                 </div>
               </div>
@@ -202,7 +207,9 @@ export default function SetupScreen() {
         {step === 3 && (
           <div className="space-y-4">
             <div className="text-center mb-6">
-              <div className="text-4xl mb-3">⚙️</div>
+              <div className="w-16 h-16 rounded-2xl bg-gray-900 border border-gray-700 flex items-center justify-center mx-auto mb-3">
+                <Settings2 size={32} strokeWidth={1.5} className="text-gray-400" />
+              </div>
               <h1 className="text-3xl font-black text-white">難易度を選ぶ</h1>
               <p className="text-gray-500 mt-1">難しいほど株価が動きやすい</p>
             </div>
@@ -263,14 +270,14 @@ export default function SetupScreen() {
                     foundCompany({ name: generatedName, industry, foundedTurn: 1, color }, difficulty)
                   }
                 }}
-                className="flex-1 font-black py-4 rounded-xl text-lg transition-all hover:scale-105 active:scale-95"
+                className="flex-1 font-black py-4 rounded-xl text-lg transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-2"
                 style={{
                   background: `linear-gradient(135deg, ${DIFFICULTY_CONFIG[difficulty].color}, ${DIFFICULTY_CONFIG[difficulty].color}99)`,
                   color: 'white',
                   boxShadow: `0 8px 24px ${DIFFICULTY_CONFIG[difficulty].color}40`,
                 }}
               >
-                🚀 IPO上場！
+                <Rocket size={20} strokeWidth={2} /> IPO上場！
               </button>
             </div>
           </div>

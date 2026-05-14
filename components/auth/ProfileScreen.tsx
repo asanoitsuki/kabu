@@ -13,6 +13,7 @@ import { ITEMS, ITEM_MAP, RARITY_CONFIG } from '@/lib/items'
 import GachaModal from '@/components/game/GachaModal'
 import { useAchievementStore as useAchStore } from '@/store/achievementStore'
 import { ALL_ACHIEVEMENTS } from '@/lib/achievements'
+import { User, Package, Award, Users, Save, Check, X, Loader2 } from 'lucide-react'
 
 const AVATARS = [
   '😊','🚀','🔥','💎','👑','🏆','⚡','🌟','🦊','🐉',
@@ -145,33 +146,36 @@ export default function ProfileScreen({ onClose }: Props) {
         <div className="flex items-center gap-3 max-w-lg mx-auto">
           {onClose && (
             <button onClick={onClose} className="text-gray-400 hover:text-white transition-colors p-1">
-              ✕
+              <X size={18} strokeWidth={2} />
             </button>
           )}
           <div className="flex gap-1.5 flex-1">
             <button
               onClick={() => setTab('profile')}
-              className={`flex-1 py-2 rounded-xl font-bold text-xs transition-all ${
+              className={`flex-1 py-2 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-1 ${
                 tab === 'profile' ? 'bg-indigo-600 text-white' : 'text-gray-500 hover:text-gray-300'
               }`}
             >
-              👤 プロフィール
+              <User size={13} strokeWidth={2} />
+              <span className="hidden sm:inline">プロフィール</span>
             </button>
             <button
               onClick={() => setTab('items')}
-              className={`flex-1 py-2 rounded-xl font-bold text-xs transition-all ${
+              className={`flex-1 py-2 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-1 ${
                 tab === 'items' ? 'bg-indigo-600 text-white' : 'text-gray-500 hover:text-gray-300'
               }`}
             >
-              🎒 アイテム
+              <Package size={13} strokeWidth={2} />
+              <span className="hidden sm:inline">アイテム</span>
             </button>
             <button
               onClick={() => setTab('badges')}
-              className={`flex-1 py-2 rounded-xl font-bold text-xs transition-all relative ${
+              className={`flex-1 py-2 rounded-xl font-bold text-xs transition-all relative flex items-center justify-center gap-1 ${
                 tab === 'badges' ? 'bg-indigo-600 text-white' : 'text-gray-500 hover:text-gray-300'
               }`}
             >
-              🏅 実績
+              <Award size={13} strokeWidth={2} />
+              <span className="hidden sm:inline">実績</span>
               {newIds.length > 0 && (
                 <span className="absolute -top-1 -right-1 min-w-[16px] h-4 bg-red-500 rounded-full text-[9px] flex items-center justify-center font-black text-white px-0.5">
                   {newIds.length}
@@ -180,11 +184,12 @@ export default function ProfileScreen({ onClose }: Props) {
             </button>
             <button
               onClick={() => setTab('friends')}
-              className={`flex-1 py-2 rounded-xl font-bold text-xs transition-all relative ${
+              className={`flex-1 py-2 rounded-xl font-bold text-xs transition-all relative flex items-center justify-center gap-1 ${
                 tab === 'friends' ? 'bg-indigo-600 text-white' : 'text-gray-500 hover:text-gray-300'
               }`}
             >
-              👥 フレンド
+              <Users size={13} strokeWidth={2} />
+              <span className="hidden sm:inline">フレンド</span>
               {receivedPending.length > 0 && (
                 <span className="absolute -top-1 -right-1 min-w-[16px] h-4 bg-red-500 rounded-full text-[9px] flex items-center justify-center font-black text-white px-0.5">
                   {receivedPending.length}
@@ -265,9 +270,9 @@ export default function ProfileScreen({ onClose }: Props) {
               <button
                 onClick={handleSave}
                 disabled={saving}
-                className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 disabled:opacity-60 text-white font-black py-4 rounded-2xl text-lg transition-all hover:scale-105 active:scale-95"
+                className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 disabled:opacity-60 text-white font-black py-4 rounded-2xl text-lg transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-2"
               >
-                {saving ? '保存中...' : saved ? '✓ 保存しました' : '💾 保存する'}
+                {saving ? <><Loader2 size={18} className="animate-spin" /> 保存中...</> : saved ? <><Check size={18} /> 保存しました</> : <><Save size={18} /> 保存する</>}
               </button>
 
               <button
@@ -284,7 +289,9 @@ export default function ProfileScreen({ onClose }: Props) {
             <>
               {/* コイン表示＆ガチャボタン */}
               <div className="bg-gradient-to-br from-yellow-950 to-amber-950 rounded-3xl p-5 border border-yellow-800 flex items-center gap-4">
-                <div className="text-4xl">🪙</div>
+                <div className="w-12 h-12 rounded-2xl bg-yellow-900/60 flex items-center justify-center flex-shrink-0">
+                  <span className="text-2xl">🪙</span>
+                </div>
                 <div className="flex-1">
                   <div className="text-yellow-300 font-black text-xl">{gachaCoins} コイン</div>
                   <div className="text-yellow-600 text-xs mt-0.5">S=+3 / A=+2 / B=+1 / 500XP=+1</div>
@@ -293,7 +300,7 @@ export default function ProfileScreen({ onClose }: Props) {
                   onClick={() => setShowGacha(true)}
                   className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-black px-4 py-3 rounded-2xl text-sm transition-all hover:scale-105 active:scale-95"
                 >
-                  🎰 ガチャ
+                  ガチャ
                 </button>
               </div>
 
@@ -368,7 +375,7 @@ export default function ProfileScreen({ onClose }: Props) {
                 {/* 進捗 */}
                 <div className="bg-gray-900 border border-gray-800 rounded-2xl p-4">
                   <div className="flex justify-between items-center mb-2">
-                    <span className="text-sm font-bold text-white">🏅 実績 達成率</span>
+                    <span className="text-sm font-bold text-white flex items-center gap-1.5"><Award size={14} className="text-indigo-400" /> 実績 達成率</span>
                     <span className="text-sm font-black text-indigo-400">{unlocked} / {total}</span>
                   </div>
                   <div className="h-2 bg-gray-800 rounded-full overflow-hidden">
@@ -470,7 +477,7 @@ export default function ProfileScreen({ onClose }: Props) {
 
               {/* フレンド検索 */}
               <div className="bg-gray-900 rounded-2xl border border-gray-800 p-4 space-y-3">
-                <h3 className="text-white font-black text-sm">🔍 フレンドを検索して追加</h3>
+                <h3 className="text-white font-black text-sm flex items-center gap-1.5"><Users size={14} className="text-gray-400" /> フレンドを検索して追加</h3>
                 <div className="flex gap-2">
                   <input
                     type="text"
@@ -532,12 +539,14 @@ export default function ProfileScreen({ onClose }: Props) {
 
               {/* フレンド一覧 */}
               <div className="space-y-2">
-                <h3 className="text-white font-black text-sm">
-                  👥 フレンド <span className="text-indigo-400">{accepted.length}</span>人
+                <h3 className="text-white font-black text-sm flex items-center gap-1.5">
+                  <Users size={14} className="text-gray-400" /> フレンド <span className="text-indigo-400">{accepted.length}</span>人
                 </h3>
                 {accepted.length === 0 && receivedPending.length === 0 && sentPending.length === 0 && (
                   <div className="bg-gray-900 border border-gray-800 rounded-2xl p-8 text-center">
-                    <div className="text-4xl mb-3">👥</div>
+                    <div className="w-16 h-16 rounded-2xl bg-gray-800 flex items-center justify-center mx-auto mb-3">
+                      <Users size={32} strokeWidth={1.5} className="text-gray-600" />
+                    </div>
                     <p className="text-gray-400 font-bold text-sm">まだフレンドがいません</p>
                     <p className="text-gray-600 text-xs mt-1">上の検索で友達を探そう！</p>
                   </div>

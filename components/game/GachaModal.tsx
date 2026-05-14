@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import { useItemStore } from '@/store/itemStore'
 import { ITEM_MAP, RARITY_CONFIG, ItemRarity } from '@/lib/items'
+import { Sparkles, X, RotateCcw } from 'lucide-react'
 
 interface Props {
   onClose: () => void
@@ -44,7 +45,9 @@ export default function GachaModal({ onClose }: Props) {
       >
         {/* ヘッダー */}
         <div className="relative p-6 pb-0 text-center">
-          <div className="text-3xl mb-1">🎰</div>
+          <div className="w-14 h-14 rounded-2xl bg-indigo-950 border border-indigo-800 flex items-center justify-center mx-auto mb-2">
+            <Sparkles size={28} strokeWidth={1.5} className="text-indigo-400" />
+          </div>
           <h2 className="text-white font-black text-xl">ガチャ</h2>
           <p className="text-gray-500 text-xs mt-1">アイテムをランダムで獲得！</p>
           <div className="absolute top-4 right-4 flex items-center gap-1.5 bg-yellow-950 border border-yellow-800 rounded-xl px-3 py-1.5">
@@ -93,7 +96,7 @@ export default function GachaModal({ onClose }: Props) {
                 <button
                   onClick={handleRoll}
                   disabled={gachaCoins < 1}
-                  className="w-full font-black py-4 rounded-2xl text-lg transition-all hover:scale-105 active:scale-95 disabled:opacity-40 disabled:scale-100 disabled:cursor-not-allowed"
+                  className="w-full font-black py-4 rounded-2xl text-lg transition-all hover:scale-105 active:scale-95 disabled:opacity-40 disabled:scale-100 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                   style={gachaCoins >= 1 ? {
                     background: 'linear-gradient(135deg, #6366f1, #a855f7)',
                     color: 'white',
@@ -103,7 +106,7 @@ export default function GachaModal({ onClose }: Props) {
                     color: '#6b7280',
                   }}
                 >
-                  {gachaCoins >= 1 ? '🎰 ガチャを引く！' : 'コインが足りません'}
+                  {gachaCoins >= 1 ? <><Sparkles size={20} strokeWidth={2} /> ガチャを引く！</> : 'コインが足りません'}
                 </button>
               )}
               {phase === 'rolling' && (
@@ -159,16 +162,16 @@ export default function GachaModal({ onClose }: Props) {
                 {gachaCoins >= 1 && (
                   <button
                     onClick={handleNext}
-                    className="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white font-black py-3.5 rounded-2xl transition-all hover:scale-105 active:scale-95"
+                    className="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white font-black py-3.5 rounded-2xl transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-2"
                   >
-                    🎰 もう一度
+                    <RotateCcw size={16} strokeWidth={2} /> もう一度
                   </button>
                 )}
                 <button
                   onClick={onClose}
                   className="flex-1 bg-gray-800 hover:bg-gray-700 text-gray-300 font-bold py-3.5 rounded-2xl transition-all"
                 >
-                  {gachaCoins >= 1 ? '閉じる' : '✓ 完了'}
+                  {gachaCoins >= 1 ? '閉じる' : '完了'}
                 </button>
               </div>
             </div>

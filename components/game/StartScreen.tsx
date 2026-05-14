@@ -13,6 +13,7 @@ import TutorialModal from '@/components/game/TutorialModal'
 import Image from 'next/image'
 import { hapticLight, hapticMedium } from '@/lib/haptics'
 import { soundTap } from '@/lib/sounds'
+import { Building2, Briefcase, BarChart2, Trophy, Cloud, Rocket, BookOpen } from 'lucide-react'
 
 const TICKER = [
   { name: 'テックスター', price: '¥4,280', change: '+328%', up: true },
@@ -86,33 +87,6 @@ export default function StartScreen({ onShowHistory, onShowRanking }: Props) {
       />
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-indigo-600/20 rounded-full blur-[120px] pointer-events-none" />
 
-      {/* 浮遊する装飾 */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        {[
-          { emoji: '💻', top: '10%', left: '5%',  delay: '0s',   size: 'text-4xl' },
-          { emoji: '🏭', top: '20%', right: '8%', delay: '1.2s', size: 'text-3xl' },
-          { emoji: '🍜', top: '60%', left: '3%',  delay: '2.4s', size: 'text-3xl' },
-          { emoji: '💰', top: '75%', right: '5%', delay: '0.6s', size: 'text-4xl' },
-          { emoji: '🎮', top: '40%', left: '2%',  delay: '1.8s', size: 'text-2xl' },
-          { emoji: '📊', top: '50%', right: '3%', delay: '3s',   size: 'text-3xl' },
-          { emoji: '🚀', top: '85%', left: '15%', delay: '1s',   size: 'text-2xl' },
-          { emoji: '⭐', top: '15%', right: '20%',delay: '2s',   size: 'text-xl'  },
-        ].map((item, i) => (
-          <span
-            key={i}
-            className={`absolute ${item.size} opacity-20`}
-            style={{
-              top: item.top,
-              left: (item as any).left,
-              right: (item as any).right,
-              animation: 'float 6s ease-in-out infinite',
-              animationDelay: item.delay,
-            }}
-          >
-            {item.emoji}
-          </span>
-        ))}
-      </div>
 
       {/* ティッカー */}
       <div className="w-full border-b border-gray-800 bg-gray-950/80 backdrop-blur-sm overflow-hidden py-2">
@@ -179,13 +153,13 @@ export default function StartScreen({ onShowHistory, onShowRanking }: Props) {
           {/* 特徴カード */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
             {[
-              { emoji: '🏢', label: '会社設立', sub: '社名・業種を選択' },
-              { emoji: '💼', label: '経営判断', sub: '毎ターン予算配分' },
-              { emoji: '📊', label: '株価変動', sub: '100種類のイベント' },
-              { emoji: '🏆', label: 'S〜F評価', sub: '20ターン勝負' },
-            ].map(({ emoji, label, sub }) => (
+              { icon: <Building2 size={22} strokeWidth={1.5} className="text-indigo-400" />, label: '会社設立', sub: '社名・業種を選択' },
+              { icon: <Briefcase  size={22} strokeWidth={1.5} className="text-purple-400" />, label: '経営判断', sub: '毎ターン予算配分' },
+              { icon: <BarChart2  size={22} strokeWidth={1.5} className="text-blue-400"   />, label: '株価変動', sub: '100種類のイベント' },
+              { icon: <Trophy     size={22} strokeWidth={1.5} className="text-yellow-400" />, label: 'S〜F評価', sub: '20ターン勝負' },
+            ].map(({ icon, label, sub }) => (
               <div key={label} className="bg-gray-900/80 border border-gray-800 rounded-2xl p-4 hover:border-indigo-700 transition-colors">
-                <div className="text-3xl mb-2">{emoji}</div>
+                <div className="mb-2">{icon}</div>
                 <div className="text-white font-bold text-sm">{label}</div>
                 <div className="text-gray-500 text-xs mt-0.5">{sub}</div>
               </div>
@@ -195,7 +169,9 @@ export default function StartScreen({ onShowHistory, onShowRanking }: Props) {
           {/* クラウドセーブ続きバナー */}
           {cloudSave && (
             <div className="mb-4 bg-indigo-950 border border-indigo-700 rounded-2xl p-4 flex items-center gap-4 max-w-sm mx-auto">
-              <div className="text-3xl">☁️</div>
+              <div className="w-10 h-10 rounded-xl bg-indigo-900/60 flex items-center justify-center flex-shrink-0">
+                <Cloud size={20} strokeWidth={1.8} className="text-indigo-300" />
+              </div>
               <div className="flex-1 text-left">
                 <p className="text-white font-bold text-sm">セーブデータあり</p>
                 <p className="text-indigo-300 text-xs mt-0.5">
@@ -214,16 +190,16 @@ export default function StartScreen({ onShowHistory, onShowRanking }: Props) {
           {/* CTA */}
           <button
             onClick={handleStartSetup}
-            className="w-full max-w-sm bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-black py-5 px-8 rounded-2xl text-xl transition-all hover:scale-105 active:scale-95 shadow-xl shadow-indigo-900/40"
+            className="w-full max-w-sm bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-black py-5 px-8 rounded-2xl text-xl transition-all hover:scale-105 active:scale-95 shadow-xl shadow-indigo-900/40 flex items-center justify-center gap-3"
           >
-            🚀 新しくゲームスタート
+            <Rocket size={22} strokeWidth={2} /> 新しくゲームスタート
           </button>
 
           {/* ログイン促進 */}
           {initialized && !user && (
             <div className="mt-4 max-w-sm mx-auto">
               <div className="bg-gray-900/80 border border-gray-700 rounded-2xl p-4 flex items-center gap-4">
-                <div className="text-2xl">☁️</div>
+                <Cloud size={22} strokeWidth={1.8} className="text-gray-400 flex-shrink-0" />
                 <div className="flex-1 text-left">
                   <p className="text-white font-bold text-sm">プレイ履歴を保存したい？</p>
                   <p className="text-gray-500 text-xs mt-0.5">ログインで記録保存・どこでも続きから</p>
@@ -259,7 +235,7 @@ export default function StartScreen({ onShowHistory, onShowRanking }: Props) {
               onClick={() => setShowGlossary(true)}
               className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-2xl bg-gray-900/60 border border-gray-800 hover:border-indigo-700 transition-colors text-sm text-gray-400 hover:text-white"
             >
-              📖 ゲーム用語を確認する
+              <BookOpen size={16} strokeWidth={1.8} /> ゲーム用語を確認する
             </button>
           </div>
         </div>

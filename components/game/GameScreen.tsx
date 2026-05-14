@@ -14,11 +14,7 @@ import UserMenu from '@/components/auth/UserMenu'
 import { TurnReport } from '@/lib/types'
 import { hapticMedium, hapticHeavy, hapticSuccess, hapticWarning } from '@/lib/haptics'
 import { soundUp, soundDown, soundTurnEnd, soundTap } from '@/lib/sounds'
-
-const INDUSTRY_EMOJI: Record<string, string> = {
-  IT: '💻', 製造: '🏭', 飲食: '🍜', 金融: '💰', エンタメ: '🎮',
-  医療: '🏥', 不動産: '🏠', 教育: '📚', 物流: '🚚', 小売: '🛒',
-}
+import { Save, Check, Loader2, Package, ScrollText, Building2, Rocket, TrendingUp } from 'lucide-react'
 
 interface Props {
   onShowHistory: () => void
@@ -122,10 +118,7 @@ export default function GameScreen({ onShowHistory, onShowRanking }: Props) {
               </div>
               <div>
                 <div className="font-black text-sm leading-tight">{company.name}</div>
-                <div className="text-gray-500 text-xs flex items-center gap-1">
-                  <span>{INDUSTRY_EMOJI[company.industry]}</span>
-                  <span>{company.industry}業</span>
-                </div>
+                <div className="text-gray-500 text-xs">{company.industry}業</div>
               </div>
             </div>
 
@@ -133,9 +126,9 @@ export default function GameScreen({ onShowHistory, onShowRanking }: Props) {
               {/* アイテムバッグボタン */}
               <button
                 onClick={() => setShowItemBag(true)}
-                className="relative w-9 h-9 flex items-center justify-center rounded-xl border border-gray-800 hover:border-indigo-600 text-xl transition-all active:scale-95"
+                className="relative w-9 h-9 flex items-center justify-center rounded-xl border border-gray-800 hover:border-indigo-600 text-gray-400 hover:text-indigo-400 transition-all active:scale-95"
               >
-                🎒
+                <Package size={18} strokeWidth={1.8} />
                 {totalItems > 0 && (
                   <span className="absolute -top-1.5 -right-1.5 min-w-[16px] h-4 bg-indigo-600 rounded-full text-[9px] flex items-center justify-center font-black text-white px-0.5">
                     {totalItems}
@@ -147,13 +140,13 @@ export default function GameScreen({ onShowHistory, onShowRanking }: Props) {
                 <button
                   onClick={handleManualSave}
                   disabled={saving}
-                  className={`w-9 h-9 flex items-center justify-center rounded-xl border text-xl transition-all active:scale-95 ${
+                  className={`w-9 h-9 flex items-center justify-center rounded-xl border transition-all active:scale-95 ${
                     savedFlash
-                      ? 'border-emerald-800 bg-emerald-950'
-                      : 'border-gray-800 hover:border-gray-600'
+                      ? 'border-emerald-800 bg-emerald-950 text-emerald-400'
+                      : 'border-gray-800 hover:border-gray-600 text-gray-400 hover:text-white'
                   }`}
                 >
-                  {saving ? '⏳' : savedFlash ? '✅' : '💾'}
+                  {saving ? <Loader2 size={16} className="animate-spin" /> : savedFlash ? <Check size={16} /> : <Save size={16} strokeWidth={1.8} />}
                 </button>
               )}
               <div className="hidden sm:block">
@@ -188,22 +181,22 @@ export default function GameScreen({ onShowHistory, onShowRanking }: Props) {
             <div className="mt-2 flex flex-wrap gap-1.5">
               {activeEffects.profitMultiplier > 1 && (
                 <span className="text-[10px] font-bold bg-indigo-950 border border-indigo-800 text-indigo-300 px-2 py-0.5 rounded-full flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-pulse" />📋 方針改正中
+                  <span className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-pulse" />方針改正中
                 </span>
               )}
               {activeEffects.forcePositiveSentiment && (
                 <span className="text-[10px] font-bold bg-amber-950 border border-amber-800 text-amber-300 px-2 py-0.5 rounded-full flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 bg-amber-400 rounded-full animate-pulse" />⚡ 神の一手
+                  <span className="w-1.5 h-1.5 bg-amber-400 rounded-full animate-pulse" />神の一手
                 </span>
               )}
               {activeEffects.nullifyNextNegEvent && (
                 <span className="text-[10px] font-bold bg-purple-950 border border-purple-800 text-purple-300 px-2 py-0.5 rounded-full flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 bg-purple-400 rounded-full animate-pulse" />🛡️ 危機待機中
+                  <span className="w-1.5 h-1.5 bg-purple-400 rounded-full animate-pulse" />危機待機中
                 </span>
               )}
               {activeEffects.revenueBoostTurns > 0 && (
                 <span className="text-[10px] font-bold bg-red-950 border border-red-800 text-red-300 px-2 py-0.5 rounded-full flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 bg-red-400 rounded-full animate-pulse" />🚀 ブースター残{activeEffects.revenueBoostTurns}T
+                  <span className="w-1.5 h-1.5 bg-red-400 rounded-full animate-pulse" />ブースター残{activeEffects.revenueBoostTurns}T
                 </span>
               )}
             </div>
@@ -236,17 +229,19 @@ export default function GameScreen({ onShowHistory, onShowRanking }: Props) {
           </div>
           <button
             onClick={() => setShowEventLog(true)}
-            className="text-xs text-gray-500 hover:text-gray-300 border border-gray-800 hover:border-gray-600 rounded-xl px-3 py-1.5 transition-colors"
+            className="text-xs text-gray-500 hover:text-gray-300 border border-gray-800 hover:border-gray-600 rounded-xl px-3 py-1.5 transition-colors flex items-center gap-1.5"
           >
-            📋 イベント履歴
+            <ScrollText size={12} strokeWidth={1.8} />
+            イベント履歴
           </button>
         </div>
 
         <button
           onClick={() => setShowNewCompanyDialog(true)}
-          className="w-full text-gray-600 hover:text-gray-400 border border-gray-800 hover:border-gray-600 rounded-2xl py-3 text-sm transition-colors mb-4"
+          className="w-full text-gray-600 hover:text-gray-400 border border-gray-800 hover:border-gray-600 rounded-2xl py-3 text-sm transition-colors mb-4 flex items-center justify-center gap-2"
         >
-          🏢 新しい会社を作る
+          <Building2 size={14} strokeWidth={1.8} />
+          新しい会社を作る
         </button>
       </main>
 
@@ -267,7 +262,9 @@ export default function GameScreen({ onShowHistory, onShowRanking }: Props) {
             onClick={e => e.stopPropagation()}
           >
             <div className="text-center">
-              <div className="text-4xl mb-3">🏢</div>
+              <div className="w-14 h-14 rounded-2xl bg-gray-800 flex items-center justify-center mx-auto mb-3">
+                <Building2 size={28} strokeWidth={1.5} className="text-gray-400" />
+              </div>
               <h2 className="text-white font-black text-lg">新しい会社を作りますか？</h2>
               <p className="text-gray-400 text-sm mt-1">
                 「{company.name}」の進行中データはどうしますか？
@@ -277,16 +274,16 @@ export default function GameScreen({ onShowHistory, onShowRanking }: Props) {
             {user && (
               <button
                 onClick={handleNewCompanyWithSave}
-                className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3.5 rounded-2xl transition-all hover:scale-105 active:scale-95"
+                className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3.5 rounded-2xl transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-2"
               >
-                💾 保存して新しい会社へ
+                <Save size={16} /> 保存して新しい会社へ
               </button>
             )}
             <button
               onClick={handleNewCompanyWithoutSave}
-              className={`w-full ${user ? 'bg-gray-800 hover:bg-gray-700 text-gray-300' : 'bg-indigo-600 hover:bg-indigo-500 text-white'} font-bold py-3.5 rounded-2xl transition-all hover:scale-105 active:scale-95`}
+              className={`w-full ${user ? 'bg-gray-800 hover:bg-gray-700 text-gray-300' : 'bg-indigo-600 hover:bg-indigo-500 text-white'} font-bold py-3.5 rounded-2xl transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-2`}
             >
-              🚀 {user ? '保存せずに始める' : '新しい会社を作る'}
+              <Rocket size={16} /> {user ? '保存せずに始める' : '新しい会社を作る'}
             </button>
             <button
               onClick={() => setShowNewCompanyDialog(false)}

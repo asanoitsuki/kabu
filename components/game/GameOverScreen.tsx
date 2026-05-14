@@ -10,15 +10,16 @@ import { useItemStore } from '@/store/itemStore'
 import { upsertProfile, getProfile } from '@/lib/profile'
 import StockChart from './StockChart'
 import AdBanner from '@/components/AdBanner'
+import { Share2, BarChart2, RotateCcw, Trophy, Star, TrendingUp, TrendingDown, Cloud } from 'lucide-react'
 
-const GRADE_CONFIG: Record<string, { color: string; bg: string; border: string; emoji: string }> = {
-  S: { color: 'text-yellow-400',  bg: 'from-yellow-950 to-amber-950',   border: 'border-yellow-700',  emoji: '👑' },
-  A: { color: 'text-emerald-400', bg: 'from-emerald-950 to-green-950',  border: 'border-emerald-700', emoji: '🏆' },
-  B: { color: 'text-blue-400',    bg: 'from-blue-950 to-indigo-950',    border: 'border-blue-700',    emoji: '🥈' },
-  C: { color: 'text-gray-300',    bg: 'from-gray-900 to-gray-800',      border: 'border-gray-700',    emoji: '📊' },
-  D: { color: 'text-orange-400',  bg: 'from-orange-950 to-amber-950',   border: 'border-orange-800',  emoji: '📉' },
-  E: { color: 'text-gray-400',    bg: 'from-gray-900 to-gray-800',      border: 'border-gray-700',    emoji: '😐' },
-  F: { color: 'text-red-400',     bg: 'from-red-950 to-rose-950',       border: 'border-red-800',     emoji: '💀' },
+const GRADE_CONFIG: Record<string, { color: string; bg: string; border: string }> = {
+  S: { color: 'text-yellow-400',  bg: 'from-yellow-950 to-amber-950',   border: 'border-yellow-700'  },
+  A: { color: 'text-emerald-400', bg: 'from-emerald-950 to-green-950',  border: 'border-emerald-700' },
+  B: { color: 'text-blue-400',    bg: 'from-blue-950 to-indigo-950',    border: 'border-blue-700'    },
+  C: { color: 'text-gray-300',    bg: 'from-gray-900 to-gray-800',      border: 'border-gray-700'    },
+  D: { color: 'text-orange-400',  bg: 'from-orange-950 to-amber-950',   border: 'border-orange-800'  },
+  E: { color: 'text-gray-400',    bg: 'from-gray-900 to-gray-800',      border: 'border-gray-700'    },
+  F: { color: 'text-red-400',     bg: 'from-red-950 to-rose-950',       border: 'border-red-800'     },
 }
 
 interface Props {
@@ -157,7 +158,7 @@ export default function GameOverScreen({ onShowHistory, onShowRanking }: Props) 
 
         <div className="text-center">
           <div className="text-gray-400 text-xs font-bold uppercase tracking-widest mb-3">
-            {bankrupted ? '💸 倒産' : '最終決算'}
+            {bankrupted ? '倒産' : '最終決算'}
           </div>
           <div
             className="w-20 h-20 rounded-3xl flex items-center justify-center text-3xl font-black mx-auto mb-4 shadow-2xl"
@@ -170,7 +171,6 @@ export default function GameOverScreen({ onShowHistory, onShowRanking }: Props) 
         </div>
 
         <div className={`bg-gradient-to-br ${cfg.bg} rounded-3xl p-8 text-center border-2 ${cfg.border}`}>
-          <div className="text-5xl mb-3">{cfg.emoji}</div>
           <div className="text-gray-300 text-sm font-bold uppercase tracking-widest mb-2">最終評価</div>
           <div className={`text-9xl font-black leading-none mb-4 ${cfg.color}`}
                style={{ textShadow: '0 0 60px currentColor' }}>
@@ -189,7 +189,9 @@ export default function GameOverScreen({ onShowHistory, onShowRanking }: Props) 
         {xpGained > 0 && (
           <div className="bg-indigo-950 border border-indigo-800 rounded-2xl p-4">
             <div className="flex items-center gap-3 mb-3">
-              <span className="text-2xl">⭐</span>
+              <div className="w-10 h-10 rounded-xl bg-indigo-900 flex items-center justify-center flex-shrink-0">
+                <Star size={20} className="text-indigo-300" strokeWidth={1.8} />
+              </div>
               <div className="flex-1">
                 <div className="text-white font-black text-sm">+{xpGained} XP 獲得！</div>
                 <div className="text-indigo-300 text-xs">Lv.{calcLevel(xp)} · 累計 {xp.toLocaleString()} XP</div>
@@ -219,7 +221,7 @@ export default function GameOverScreen({ onShowHistory, onShowRanking }: Props) 
 
         {user && (
           <div className="bg-gray-900 border border-gray-800 rounded-2xl p-3 flex items-center gap-2 text-sm">
-            <span className="text-emerald-400">☁️</span>
+            <Cloud size={16} className="text-emerald-400 flex-shrink-0" />
             <span className="text-gray-400">この結果はプレイ履歴に保存されました</span>
             <button
               onClick={onShowHistory}
@@ -255,11 +257,11 @@ export default function GameOverScreen({ onShowHistory, onShowRanking }: Props) 
           className="w-full flex items-center justify-center gap-3 bg-gray-900 hover:bg-gray-800 border border-gray-700 hover:border-indigo-600 text-white font-bold py-4 rounded-2xl text-sm transition-all active:scale-95 disabled:opacity-60"
         >
           {sharing ? (
-            <span className="text-gray-400">画像を生成中...</span>
+            <><RotateCcw size={16} className="animate-spin text-gray-400" /><span className="text-gray-400">画像を生成中...</span></>
           ) : copied ? (
-            <><span className="text-emerald-400">✓</span><span className="text-emerald-400">リンクをコピーしました</span></>
+            <><span className="text-emerald-400 text-lg">✓</span><span className="text-emerald-400">リンクをコピーしました</span></>
           ) : (
-            <><span className="text-xl">🖼️</span><span>結果カードをシェアする</span></>
+            <><Share2 size={16} strokeWidth={1.8} /><span>結果カードをシェアする</span></>
           )}
         </button>
 
@@ -268,15 +270,15 @@ export default function GameOverScreen({ onShowHistory, onShowRanking }: Props) 
         <div className="space-y-3">
           <button
             onClick={() => { resetGame(); startSetup() }}
-            className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-black py-4 rounded-2xl text-lg transition-all hover:scale-105 active:scale-95"
+            className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-black py-4 rounded-2xl text-lg transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-2"
           >
-            🚀 新しい会社を設立する
+            <BarChart2 size={20} strokeWidth={2} /> 新しい会社を設立する
           </button>
           <button
             onClick={onShowRanking}
-            className="w-full bg-gray-900 hover:bg-gray-800 border border-gray-700 hover:border-yellow-700 text-white font-bold py-3 rounded-2xl text-sm transition-all"
+            className="w-full bg-gray-900 hover:bg-gray-800 border border-gray-700 hover:border-yellow-700 text-white font-bold py-3 rounded-2xl text-sm transition-all flex items-center justify-center gap-2"
           >
-            🏆 世界ランキングを見る
+            <Trophy size={16} strokeWidth={1.8} className="text-yellow-400" /> 世界ランキングを見る
           </button>
           <button
             onClick={resetGame}
