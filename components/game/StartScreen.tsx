@@ -142,9 +142,9 @@ export default function StartScreen({ onShowHistory, onShowRanking }: Props) {
               <div className="absolute inset-0 bg-gradient-to-t from-indigo-900/60 via-transparent to-transparent" />
             </div>
             <h1 className="text-5xl sm:text-6xl font-black text-white tracking-tight leading-tight">
-              株式会社<br />
+              マイ
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400">
-                シミュレーター
+                ビズ
               </span>
             </h1>
             <p className="text-gray-400 text-lg mt-3">あなただけの仮想会社を経営して上場させよう</p>

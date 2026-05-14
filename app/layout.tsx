@@ -17,21 +17,21 @@ const geistMono = Geist_Mono({
 const BASE_URL = 'https://kabu-three.vercel.app'
 
 export const metadata: Metadata = {
-  title: '株式会社シミュレーター | 自分だけの仮想会社を上場させよう',
+  title: 'マイビズ | 自分だけの仮想会社を上場させよう',
   description: '社名を決めてIPO上場。20ターンの経営判断で株価を最大化する無料ブラウザゲーム。登録不要・即プレイ。',
   keywords: ['株式会社', 'シミュレーター', '経営ゲーム', '株価', 'ブラウザゲーム', '無料', 'IPO'],
   openGraph: {
-    title: '株式会社シミュレーター | 自分だけの仮想会社を上場させよう',
+    title: 'マイビズ | 自分だけの仮想会社を上場させよう',
     description: '社名を決めてIPO上場。20ターンの経営判断で株価を最大化する無料ブラウザゲーム。登録不要・即プレイ。',
     url: BASE_URL,
-    siteName: '株式会社シミュレーター',
+    siteName: 'マイビズ',
     locale: 'ja_JP',
     type: 'website',
     images: [{ url: `${BASE_URL}/og`, width: 1200, height: 630 }],
   },
   twitter: {
     card: 'summary_large_image',
-    title: '株式会社シミュレーター | 自分だけの仮想会社を上場させよう',
+    title: 'マイビズ | 自分だけの仮想会社を上場させよう',
     description: '社名を決めてIPO上場。20ターンの経営判断で株価を最大化する無料ブラウザゲーム。登録不要・即プレイ。',
     images: [`${BASE_URL}/og`],
   },

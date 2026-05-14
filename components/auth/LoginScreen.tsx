@@ -18,7 +18,7 @@ export default function LoginScreen({ onGuest }: Props) {
           <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-indigo-600 text-4xl shadow-2xl shadow-indigo-900/60 mb-5">
             📈
           </div>
-          <h1 className="text-3xl font-black text-white">株式会社シミュレーター</h1>
+          <h1 className="text-3xl font-black text-white">マイビズ</h1>
           <p className="text-gray-400 text-sm mt-2">ログインしてプレイ履歴を保存しよう</p>
         </div>
 

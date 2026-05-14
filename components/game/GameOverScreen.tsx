@@ -124,7 +124,7 @@ export default function GameOverScreen({ onShowHistory, onShowRanking }: Props) 
       const base = 'https://kabu-three.vercel.app'
       const url = `${base}/result?${qs}`
       const imageApiUrl = `${base}/api/og/result?${qs}`
-      const text = `「${company.name}」を経営して${grade}ランク達成！株価${Number(totalReturn) >= 0 ? '+' : ''}${totalReturn}%\n#株式会社シミュレーター`
+      const text = `「${company.name}」を経営して${grade}ランク達成！株価${Number(totalReturn) >= 0 ? '+' : ''}${totalReturn}%\n#マイビズ`
 
       try {
         const imgRes = await fetch(imageApiUrl)

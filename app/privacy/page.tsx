@@ -2,8 +2,8 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 
 export const metadata: Metadata = {
-  title: 'プライバシーポリシー | 株式会社シミュレーター',
-  description: '株式会社シミュレーターのプライバシーポリシーです。',
+  title: 'プライバシーポリシー | マイビズ',
+  description: 'マイビズのプライバシーポリシーです。',
 }
 
 export default function PrivacyPage() {
@@ -18,7 +18,7 @@ export default function PrivacyPage() {
 
           <section>
             <h2 className="text-white font-bold text-base mb-3">基本方針</h2>
-            <p>株式会社シミュレーター（以下「本サービス」）は、ユーザーのプライバシーを尊重し、個人情報の保護に努めます。本ポリシーは、本サービスにおける個人情報の取り扱いについて説明します。</p>
+            <p>マイビズ（以下「本サービス」）は、ユーザーのプライバシーを尊重し、個人情報の保護に努めます。本ポリシーは、本サービスにおける個人情報の取り扱いについて説明します。</p>
           </section>
 
           <section>

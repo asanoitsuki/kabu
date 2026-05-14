@@ -1,6 +1,6 @@
 {
-  "appName": "Startup Studio",
-  "appId": "com.startupstudio.app",
+  "appName": "マイビズ",
+  "appId": "com.mybiz.app",
   "webDir": "out",
   "server": {
     "androidScheme": "https"
