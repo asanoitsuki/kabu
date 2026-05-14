@@ -33,9 +33,13 @@ export const useAuthStore = create<AuthStore>((set) => ({
 
   signInWithGoogle: async () => {
     if (!supabase) return
+    const isNative = typeof window !== 'undefined' && (window as any).Capacitor?.isNativePlatform?.()
+    const redirectTo = isNative
+      ? 'com.startupstudio.app://login-callback'
+      : (typeof window !== 'undefined' ? window.location.origin : '')
     await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: typeof window !== 'undefined' ? window.location.origin : '' },
+      options: { redirectTo },
     })
   },
 

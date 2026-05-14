@@ -4,6 +4,8 @@ import { useGameStore } from '@/store/gameStore'
 import { useAuthStore } from '@/store/authStore'
 import { supabase } from '@/lib/supabase'
 import { getPendingCount } from '@/lib/friends'
+import { App as CapApp } from '@capacitor/app'
+import { Capacitor } from '@capacitor/core'
 import LoginScreen from '@/components/auth/LoginScreen'
 import StartScreen from '@/components/game/StartScreen'
 import SetupScreen from '@/components/game/SetupScreen'
@@ -33,6 +35,26 @@ export default function Home() {
         .then(() => { window.history.replaceState({}, '', '/') })
     }
     initialize()
+
+    // iOSネイティブ: OAuthコールバックのディープリンクを処理
+    if (Capacitor.isNativePlatform()) {
+      CapApp.addListener('appUrlOpen', async ({ url }) => {
+        if (url.includes('login-callback') && supabase) {
+          // URLフラグメントからトークンを取得
+          // 例: com.startupstudio.app://login-callback#access_token=...
+          const fragment = url.split('#')[1] ?? url.split('?')[1] ?? ''
+          const params = new URLSearchParams(fragment)
+          const accessToken = params.get('access_token')
+          const refreshToken = params.get('refresh_token')
+          if (accessToken && refreshToken) {
+            await supabase.auth.setSession({
+              access_token: accessToken,
+              refresh_token: refreshToken,
+            })
+          }
+        }
+      })
+    }
   }, [])
 
   useEffect(() => {
