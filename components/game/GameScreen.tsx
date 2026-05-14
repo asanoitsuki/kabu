@@ -15,6 +15,7 @@ import { soundUp, soundDown, soundTurnEnd, soundTap } from '@/lib/sounds'
 
 const INDUSTRY_EMOJI: Record<string, string> = {
   IT: '💻', 製造: '🏭', 飲食: '🍜', 金融: '💰', エンタメ: '🎮',
+  医療: '🏥', 不動産: '🏠', 教育: '📚', 物流: '🚚', 小売: '🛒',
 }
 
 interface Props {

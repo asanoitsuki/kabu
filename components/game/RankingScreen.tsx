@@ -11,6 +11,7 @@ const DIFFICULTY_COLOR: Record<string, string> = {
 }
 const INDUSTRY_EMOJI: Record<string, string> = {
   IT: '💻', 製造: '🏭', 飲食: '🍜', 金融: '💰', エンタメ: '🎮',
+  医療: '🏥', 不動産: '🏠', 教育: '📚', 物流: '🚚', 小売: '🛒',
 }
 const GRADE_COLOR: Record<string, string> = {
   S: 'text-yellow-400 bg-yellow-950 border-yellow-700',
@@ -23,7 +24,7 @@ const GRADE_COLOR: Record<string, string> = {
 }
 const RANK_MEDAL = ['🥇', '🥈', '🥉']
 const DIFFICULTIES = ['', 'easy', 'normal', 'hard', 'hell'] as const
-const INDUSTRIES   = ['', 'IT', '製造', '飲食', '金融', 'エンタメ'] as const
+const INDUSTRIES   = ['', 'IT', '製造', '飲食', '金融', 'エンタメ', '医療', '不動産', '教育', '物流', '小売'] as const
 
 interface Props { onBack: () => void }
 
@@ -128,10 +129,6 @@ export default function RankingScreen({ onBack }: Props) {
 
         {/* ヘッダー */}
         <div className="flex items-center gap-3 mb-6">
-          <button onClick={onBack}
-            className="text-gray-400 hover:text-white transition-colors text-sm px-3 py-1.5 rounded-lg border border-gray-800 hover:border-gray-600">
-            ← 戻る
-          </button>
           <div>
             <h1 className="text-xl font-black">🏆 世界ランキング</h1>
             <p className="text-gray-500 text-xs mt-0.5">IPO比リターン上位</p>

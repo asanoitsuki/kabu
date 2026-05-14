@@ -6,6 +6,11 @@ export const INDUSTRY_STATS: GameState['industryStats'] = {
   飲食:     { per: 18, growth: 1.05 },
   金融:     { per: 11, growth: 1.02 },
   エンタメ: { per: 22, growth: 1.07 },
+  医療:     { per: 24, growth: 1.08 },
+  不動産:   { per: 15, growth: 1.04 },
+  教育:     { per: 20, growth: 1.06 },
+  物流:     { per: 14, growth: 1.04 },
+  小売:     { per: 16, growth: 1.05 },
 }
 
 export const INDUSTRY_COLORS: Record<Industry, string> = {
@@ -14,6 +19,11 @@ export const INDUSTRY_COLORS: Record<Industry, string> = {
   飲食:     '#ef4444',
   金融:     '#10b981',
   エンタメ: '#ec4899',
+  医療:     '#06b6d4',
+  不動産:   '#84cc16',
+  教育:     '#8b5cf6',
+  物流:     '#f97316',
+  小売:     '#14b8a6',
 }
 
 export interface DifficultyConfig {

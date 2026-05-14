@@ -17,6 +17,7 @@ const GRADE_STYLE: Record<string, { text: string; bg: string; border: string }> 
 
 const INDUSTRY_EMOJI: Record<string, string> = {
   IT: '💻', 製造: '🏭', 飲食: '🍜', 金融: '💰', エンタメ: '🎮',
+  医療: '🏥', 不動産: '🏠', 教育: '📚', 物流: '🚚', 小売: '🛒',
 }
 
 interface Props {
@@ -58,12 +59,6 @@ export default function HistoryScreen({ onBack, onPlay }: Props) {
       <div className="max-w-lg mx-auto p-4 py-8 space-y-5">
 
         <div className="flex items-center gap-3">
-          <button
-            onClick={onBack}
-            className="w-10 h-10 rounded-xl bg-gray-900 border border-gray-800 flex items-center justify-center text-gray-400 hover:text-white hover:border-gray-600 transition-colors text-lg"
-          >
-            ←
-          </button>
           <div>
             <h1 className="text-2xl font-black">プレイ履歴</h1>
             <p className="text-gray-500 text-sm">{loading ? '...' : `${saves.length}社 · 進行中${playingCount}社`}</p>

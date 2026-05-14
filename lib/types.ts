@@ -1,4 +1,4 @@
-export type Industry = 'IT' | '製造' | '飲食' | '金融' | 'エンタメ'
+export type Industry = 'IT' | '製造' | '飲食' | '金融' | 'エンタメ' | '医療' | '不動産' | '教育' | '物流' | '小売'
 
 export interface Achievement {
   id: string

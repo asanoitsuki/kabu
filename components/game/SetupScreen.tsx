@@ -11,6 +11,11 @@ const INDUSTRIES: { id: Industry; emoji: string; desc: string; bg: string; flavo
   { id: '飲食',   emoji: '🍜', desc: 'ブランド力で勝負。マーケが重要',           bg: 'from-red-950 to-pink-950',       flavor: '心と胃袋を掴め' },
   { id: '金融',   emoji: '💰', desc: '低成長だが安定。守りのプレイ向け',         bg: 'from-emerald-950 to-teal-950',   flavor: '資本で世界を動かす' },
   { id: 'エンタメ', emoji: '🎮', desc: '波が大きい。ヒット次第で大化け',         bg: 'from-pink-950 to-purple-950',    flavor: '熱狂を生み出せ' },
+  { id: '医療',   emoji: '🏥', desc: '安定需要と高い社会的信頼感',               bg: 'from-cyan-950 to-teal-950',      flavor: '命と健康を守る' },
+  { id: '不動産', emoji: '🏠', desc: '資産運用と景気に連動した低PER業種',        bg: 'from-lime-950 to-green-950',     flavor: '土地と夢を売る' },
+  { id: '教育',   emoji: '📚', desc: '景気に左右されにくい安定業種',             bg: 'from-violet-950 to-purple-950',  flavor: '未来を育てる' },
+  { id: '物流',   emoji: '🚚', desc: 'インフラを支える低PER・安定型',            bg: 'from-orange-950 to-amber-950',   flavor: '世界を繋ぐ' },
+  { id: '小売',   emoji: '🛒', desc: '薄利多売。回転率が命の消費者向け業種',     bg: 'from-teal-950 to-cyan-950',      flavor: '日常に寄り添う' },
 ]
 
 const COLORS = ['#6366f1', '#f59e0b', '#ef4444', '#10b981', '#ec4899', '#3b82f6', '#8b5cf6']
