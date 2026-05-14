@@ -1,9 +1,9 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useGameStore } from '@/store/gameStore'
 import { Difficulty, Industry } from '@/lib/types'
 import { DIFFICULTY_CONFIG, INDUSTRY_COLORS, INDUSTRY_STATS } from '@/lib/gameLogic'
-import { detectBannedWord } from '@/lib/bannedWords'
+import { generateCompanyName } from '@/lib/companyNames'
 
 const INDUSTRIES: { id: Industry; emoji: string; desc: string; bg: string; flavor: string }[] = [
   { id: 'IT',     emoji: '💻', desc: '高成長・高PER。リスクと爆発力の業種',     bg: 'from-indigo-950 to-blue-950',    flavor: 'AIで世界を変える' },
@@ -18,34 +18,32 @@ const INDUSTRIES: { id: Industry; emoji: string; desc: string; bg: string; flavo
   { id: '小売',   emoji: '🛒', desc: '薄利多売。回転率が命の消費者向け業種',     bg: 'from-teal-950 to-cyan-950',      flavor: '日常に寄り添う' },
 ]
 
-const COLORS = ['#6366f1', '#f59e0b', '#ef4444', '#10b981', '#ec4899', '#3b82f6', '#8b5cf6']
+const COLORS = ['#6366f1', '#f59e0b', '#ef4444', '#10b981', '#ec4899', '#3b82f6', '#8b5cf6', '#f97316']
 const DIFFICULTY_ORDER: Difficulty[] = ['easy', 'normal', 'hard', 'hell']
 
 export default function SetupScreen() {
   const { foundCompany } = useGameStore()
-  const [name, setName] = useState('')
   const [industry, setIndustry] = useState<Industry | null>(null)
   const [color, setColor] = useState(COLORS[0])
   const [difficulty, setDifficulty] = useState<Difficulty>('normal')
   const [step, setStep] = useState<1 | 2 | 3>(1)
-  const [nameError, setNameError] = useState<string | null>(null)
+  const [generatedName, setGeneratedName] = useState('')
 
-  function handleNameChange(v: string) {
-    setName(v)
-    setNameError(null)
-  }
-
-  function handleNextFromStep1() {
-    const banned = detectBannedWord(name.trim())
-    if (banned) {
-      setNameError(`その名前は使用できません`)
-      return
+  // 業種が選ばれたら自動生成
+  useEffect(() => {
+    if (industry) {
+      setGeneratedName(generateCompanyName(industry))
     }
-    setStep(2)
+  }, [industry])
+
+  function handleSelectIndustry(id: Industry) {
+    setIndustry(id)
+    setGeneratedName(generateCompanyName(id))
   }
 
-  const canNext = name.trim().length >= 1
-  const canSubmit = canNext && industry !== null
+  function handleRegenerate() {
+    if (industry) setGeneratedName(generateCompanyName(industry))
+  }
 
   return (
     <div className="min-h-screen bg-gray-950 p-4 py-8">
@@ -59,96 +57,20 @@ export default function SetupScreen() {
                 step >= s ? 'bg-indigo-600 text-white' : 'bg-gray-800 text-gray-600'
               }`}>{s}</div>
               <span className={`text-xs font-semibold ${step >= s ? 'text-white' : 'text-gray-600'}`}>
-                {s === 1 ? '会社情報' : s === 2 ? '業種' : '難易度'}
+                {s === 1 ? '業種' : s === 2 ? 'カスタマイズ' : '難易度'}
               </span>
               {s < 3 && <div className={`flex-1 h-0.5 ${step > s ? 'bg-indigo-600' : 'bg-gray-800'}`} />}
             </div>
           ))}
         </div>
 
-        {/* ── STEP 1: 会社情報 ── */}
+        {/* ── STEP 1: 業種 ── */}
         {step === 1 && (
-          <div className="space-y-6">
-            <div className="text-center mb-6">
-              <div className="text-4xl mb-3">🏢</div>
-              <h1 className="text-3xl font-black text-white">会社を設立する</h1>
-              <p className="text-gray-500 mt-1">まず会社の基本情報を決めよう</p>
-            </div>
-
-            <div>
-              <label className="text-gray-400 text-sm font-semibold mb-2 block">社名 <span className="text-red-500">*</span></label>
-              <input
-                type="text"
-                value={name}
-                onChange={e => handleNameChange(e.target.value)}
-                placeholder="例: 株式会社テックスター"
-                maxLength={20}
-                autoFocus
-                className={`w-full bg-gray-900 text-white rounded-xl px-4 py-4 text-lg outline-none border-2 transition-colors placeholder-gray-700 ${
-                  nameError ? 'border-red-500' : 'border-gray-800 focus:border-indigo-500'
-                }`}
-              />
-              <div className="flex justify-between mt-1">
-                {nameError
-                  ? <p className="text-red-400 text-xs font-bold">{nameError}</p>
-                  : <span />
-                }
-                <div className="text-gray-600 text-xs">{name.length}/20</div>
-              </div>
-            </div>
-
-            <div>
-              <label className="text-gray-400 text-sm font-semibold mb-3 block">コーポレートカラー</label>
-              <div className="flex gap-3 items-center">
-                {COLORS.map(c => (
-                  <button
-                    key={c}
-                    onClick={() => setColor(c)}
-                    className="w-10 h-10 rounded-full transition-all hover:scale-110 active:scale-95"
-                    style={{
-                      backgroundColor: c,
-                      outline: color === c ? `3px solid white` : 'none',
-                      outlineOffset: '3px',
-                      boxShadow: color === c ? `0 0 20px ${c}80` : 'none',
-                    }}
-                  />
-                ))}
-              </div>
-            </div>
-
-            <div
-              className="rounded-2xl p-6 flex items-center gap-5 border-2 transition-all"
-              style={{ borderColor: color + '60', background: `linear-gradient(135deg, ${color}15, ${color}05)` }}
-            >
-              <div
-                className="w-16 h-16 rounded-2xl flex items-center justify-center text-2xl font-black text-white shadow-lg flex-shrink-0"
-                style={{ backgroundColor: color, boxShadow: `0 8px 24px ${color}60` }}
-              >
-                {name ? name[0] : '?'}
-              </div>
-              <div>
-                <div className="text-xl font-black text-white">{name || '会社名を入力してください'}</div>
-                <div className="text-gray-500 text-sm mt-0.5">株式会社 · 設立準備中</div>
-              </div>
-            </div>
-
-            <button
-              disabled={!canNext}
-              onClick={handleNextFromStep1}
-              className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:bg-gray-800 disabled:text-gray-600 text-white font-bold py-4 rounded-xl text-lg transition-all hover:scale-105 active:scale-95 disabled:scale-100 disabled:cursor-not-allowed"
-            >
-              次へ → 業種を選ぶ
-            </button>
-          </div>
-        )}
-
-        {/* ── STEP 2: 業種 ── */}
-        {step === 2 && (
           <div className="space-y-4">
             <div className="text-center mb-6">
               <div className="text-4xl mb-3">🏗️</div>
               <h1 className="text-3xl font-black text-white">業種を選ぶ</h1>
-              <p className="text-gray-500 mt-1">経営スタイルが変わる大事な選択</p>
+              <p className="text-gray-500 mt-1">業種を選ぶと会社名が自動で決まります</p>
             </div>
 
             <div className="space-y-3">
@@ -158,7 +80,7 @@ export default function SetupScreen() {
                 return (
                   <button
                     key={id}
-                    onClick={() => setIndustry(id)}
+                    onClick={() => handleSelectIndustry(id)}
                     className={`w-full text-left rounded-2xl border-2 transition-all overflow-hidden ${
                       isSelected ? 'border-white scale-[1.02]' : 'border-gray-800 hover:border-gray-600'
                     }`}
@@ -196,6 +118,88 @@ export default function SetupScreen() {
               })}
             </div>
 
+            <div className="pt-2">
+              <button
+                disabled={!industry}
+                onClick={() => setStep(2)}
+                className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:bg-gray-800 disabled:text-gray-600 text-white font-black py-4 rounded-xl text-lg transition-all hover:scale-105 active:scale-95 disabled:scale-100 disabled:cursor-not-allowed"
+              >
+                次へ → カスタマイズ
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* ── STEP 2: カスタマイズ（社名プレビュー + カラー） ── */}
+        {step === 2 && industry && (
+          <div className="space-y-5">
+            <div className="text-center mb-6">
+              <div className="text-4xl mb-3">✨</div>
+              <h1 className="text-3xl font-black text-white">会社をカスタマイズ</h1>
+              <p className="text-gray-500 mt-1">AIが会社名を決めました！</p>
+            </div>
+
+            {/* 生成された社名 */}
+            <div className="bg-gray-900 border border-gray-700 rounded-2xl p-5 space-y-4">
+              <div>
+                <div className="text-gray-400 text-xs font-semibold mb-2">🤖 AI生成 社名</div>
+                <div className="flex items-center gap-3">
+                  <div
+                    className="w-12 h-12 rounded-xl flex items-center justify-center text-xl font-black text-white shadow-lg flex-shrink-0"
+                    style={{ backgroundColor: color, boxShadow: `0 4px 16px ${color}60` }}
+                  >
+                    {generatedName[0] || '?'}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-white font-black text-lg leading-tight break-all">{generatedName}</div>
+                    <div className="text-gray-500 text-xs mt-0.5">{INDUSTRIES.find(i => i.id === industry)?.emoji} {industry}業</div>
+                  </div>
+                  <button
+                    onClick={handleRegenerate}
+                    className="flex-shrink-0 bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white border border-gray-700 rounded-xl px-3 py-2 text-sm font-bold transition-all hover:scale-105 active:scale-95"
+                  >
+                    🔄
+                  </button>
+                </div>
+              </div>
+
+              <div className="border-t border-gray-800 pt-4">
+                <div className="text-gray-400 text-xs font-semibold mb-3">コーポレートカラー</div>
+                <div className="flex gap-3 items-center flex-wrap">
+                  {COLORS.map(c => (
+                    <button
+                      key={c}
+                      onClick={() => setColor(c)}
+                      className="w-9 h-9 rounded-full transition-all hover:scale-110 active:scale-95"
+                      style={{
+                        backgroundColor: c,
+                        outline: color === c ? `3px solid white` : 'none',
+                        outlineOffset: '3px',
+                        boxShadow: color === c ? `0 0 20px ${c}80` : 'none',
+                      }}
+                    />
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* プレビューカード */}
+            <div
+              className="rounded-2xl p-5 flex items-center gap-4 border-2 transition-all"
+              style={{ borderColor: color + '60', background: `linear-gradient(135deg, ${color}15, ${color}05)` }}
+            >
+              <div
+                className="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl font-black text-white shadow-lg flex-shrink-0"
+                style={{ backgroundColor: color, boxShadow: `0 8px 24px ${color}60` }}
+              >
+                {generatedName[0] || '?'}
+              </div>
+              <div>
+                <div className="text-lg font-black text-white leading-tight">{generatedName}</div>
+                <div className="text-gray-500 text-sm mt-0.5">株式会社 · 設立準備中</div>
+              </div>
+            </div>
+
             <div className="flex gap-3 pt-2">
               <button
                 onClick={() => setStep(1)}
@@ -204,9 +208,8 @@ export default function SetupScreen() {
                 ← 戻る
               </button>
               <button
-                disabled={!industry}
                 onClick={() => setStep(3)}
-                className="flex-1 bg-indigo-600 hover:bg-indigo-500 disabled:bg-gray-800 disabled:text-gray-600 text-white font-black py-4 rounded-xl text-lg transition-all hover:scale-105 active:scale-95 disabled:scale-100 disabled:cursor-not-allowed"
+                className="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white font-black py-4 rounded-xl text-lg transition-all hover:scale-105 active:scale-95"
               >
                 次へ → 難易度を選ぶ
               </button>
@@ -220,7 +223,7 @@ export default function SetupScreen() {
             <div className="text-center mb-6">
               <div className="text-4xl mb-3">⚙️</div>
               <h1 className="text-3xl font-black text-white">難易度を選ぶ</h1>
-              <p className="text-gray-500 mt-1">難しいほど獲得XPが多くなる</p>
+              <p className="text-gray-500 mt-1">難しいほど株価が動きやすい</p>
             </div>
 
             <div className="space-y-3">
@@ -252,12 +255,6 @@ export default function SetupScreen() {
                           <span className="text-xs px-2 py-0.5 rounded-full font-bold bg-indigo-950 text-indigo-300 border border-indigo-800">
                             XP {xpMult[d]}
                           </span>
-                          <span
-                            className="text-xs px-2 py-0.5 rounded-full font-bold"
-                            style={{ backgroundColor: cfg.color + '30', color: cfg.color }}
-                          >
-                            Sランク {cfg.sRank + 1}倍以上
-                          </span>
                         </div>
                         <p className="text-gray-400 text-xs">{cfg.desc}</p>
                       </div>
@@ -280,10 +277,9 @@ export default function SetupScreen() {
                 ← 戻る
               </button>
               <button
-                disabled={!canSubmit}
                 onClick={() => {
-                  if (industry && name.trim()) {
-                    foundCompany({ name: name.trim(), industry, foundedTurn: 1, color }, difficulty)
+                  if (industry && generatedName) {
+                    foundCompany({ name: generatedName, industry, foundedTurn: 1, color }, difficulty)
                   }
                 }}
                 className="flex-1 font-black py-4 rounded-xl text-lg transition-all hover:scale-105 active:scale-95"
