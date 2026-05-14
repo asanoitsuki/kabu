@@ -14,8 +14,6 @@ const config: CapacitorConfig = {
   ios: {
     // ステータスバーをWebViewに含める
     contentInset: 'automatic',
-    // スクロールバウンス無効化（アプリらしくする）
-    scrollEnabled: false,
   },
 }
 
