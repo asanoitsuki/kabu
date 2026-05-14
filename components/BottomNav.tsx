@@ -1,4 +1,5 @@
 'use client'
+import { hapticLight } from '@/lib/haptics'
 
 export type NavTab = 'startup' | 'history' | 'badges' | 'ranking' | 'profile'
 
@@ -28,7 +29,7 @@ export default function BottomNav({ active, onTab, pendingFriends = 0 }: Props) 
           return (
             <button
               key={id}
-              onClick={() => onTab(id)}
+              onClick={() => { hapticLight(); onTab(id) }}
               className="flex-1 flex flex-col items-center pt-3 pb-3 gap-1 relative transition-colors min-h-[60px]"
             >
               {isActive && (

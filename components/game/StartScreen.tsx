@@ -9,7 +9,10 @@ import { GameState } from '@/lib/types'
 import AuthModal from '@/components/auth/AuthModal'
 import AdBanner from '@/components/AdBanner'
 import GlossaryModal from '@/components/game/GlossaryModal'
+import TutorialModal from '@/components/game/TutorialModal'
 import Image from 'next/image'
+import { hapticLight, hapticMedium } from '@/lib/haptics'
+import { soundTap } from '@/lib/sounds'
 
 const TICKER = [
   { name: 'テックスター', price: '¥4,280', change: '+328%', up: true },
@@ -31,6 +34,7 @@ export default function StartScreen({ onShowHistory, onShowRanking }: Props) {
   const [showAuth, setShowAuth] = useState(false)
   const [cloudSave, setCloudSave] = useState<GameState | null>(null)
   const [showGlossary, setShowGlossary] = useState(false)
+  const [showTutorial, setShowTutorial] = useState(false)
   const [profileAvatar, setProfileAvatar] = useState('😊')
   const [profileName, setProfileName] = useState('')
 
@@ -45,12 +49,32 @@ export default function StartScreen({ onShowHistory, onShowRanking }: Props) {
     })
   }, [user])
 
+  // 初回起動時チュートリアル
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const seen = localStorage.getItem('tutorial_seen')
+    if (!seen) setShowTutorial(true)
+  }, [])
+
   function handleContinue() {
+    hapticMedium()
+    soundTap()
     if (cloudSave) loadFromCloud(cloudSave)
   }
 
+  function handleStartSetup() {
+    hapticMedium()
+    soundTap()
+    startSetup()
+  }
+
+  function handleTutorialClose() {
+    localStorage.setItem('tutorial_seen', '1')
+    setShowTutorial(false)
+  }
+
   return (
-    <div className="min-h-screen bg-gray-950 overflow-hidden relative flex flex-col">
+    <div className="min-h-screen bg-gray-950 overflow-hidden relative flex flex-col animate-screen">
 
       {/* 背景グリッド */}
       <div
@@ -189,7 +213,7 @@ export default function StartScreen({ onShowHistory, onShowRanking }: Props) {
 
           {/* CTA */}
           <button
-            onClick={startSetup}
+            onClick={handleStartSetup}
             className="w-full max-w-sm bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-black py-5 px-8 rounded-2xl text-xl transition-all hover:scale-105 active:scale-95 shadow-xl shadow-indigo-900/40"
           >
             🚀 新しくゲームスタート
@@ -247,6 +271,7 @@ export default function StartScreen({ onShowHistory, onShowRanking }: Props) {
 
       {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
       {showGlossary && <GlossaryModal onClose={() => setShowGlossary(false)} />}
+      {showTutorial && <TutorialModal onClose={handleTutorialClose} />}
 
       <style>{`
         @keyframes float {

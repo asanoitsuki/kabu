@@ -47,6 +47,8 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
+	<key>NSUserNotificationUsageDescription</key>
+	<string>毎日のプレイリマインダーをお届けします</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>

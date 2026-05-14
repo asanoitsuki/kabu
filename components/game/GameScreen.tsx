@@ -10,6 +10,8 @@ import TurnReportModal from './TurnReportModal'
 import EventLogModal from './EventLogModal'
 import UserMenu from '@/components/auth/UserMenu'
 import { TurnReport } from '@/lib/types'
+import { hapticMedium, hapticHeavy, hapticSuccess, hapticWarning } from '@/lib/haptics'
+import { soundUp, soundDown, soundTurnEnd, soundTap } from '@/lib/sounds'
 
 const INDUSTRY_EMOJI: Record<string, string> = {
   IT: '💻', 製造: '🏭', 飲食: '🍜', 金融: '💰', エンタメ: '🎮',
@@ -69,12 +71,21 @@ export default function GameScreen({ onShowHistory, onShowRanking }: Props) {
   }
 
   function handleEndTurn() {
+    const prevPrice = stockHistory.at(-1)?.price ?? 0
+    hapticMedium()
+    soundTurnEnd()
     endTurn()
     const s = useGameStore.getState()
     const rep = s.reports[s.reports.length - 1]
     if (rep) {
       setLastReport(rep)
       setShowReport(true)
+      // 株価変動に応じたフィードバック
+      const newPrice = s.stockHistory.at(-1)?.price ?? 0
+      setTimeout(() => {
+        if (newPrice > prevPrice) { hapticSuccess(); soundUp() }
+        else if (newPrice < prevPrice * 0.95) { hapticWarning(); soundDown() }
+      }, 300)
     }
   }
 
@@ -90,7 +101,7 @@ export default function GameScreen({ onShowHistory, onShowRanking }: Props) {
   const year = `Y${Math.ceil((turn) / 4)}`
 
   return (
-    <div className="min-h-screen bg-gray-950 text-white">
+    <div className="min-h-screen bg-gray-950 text-white animate-screen">
 
       <header className="border-b border-gray-900 bg-gray-950/95 backdrop-blur-sm sticky top-0 z-10">
         <div className="max-w-4xl mx-auto px-4 py-3">

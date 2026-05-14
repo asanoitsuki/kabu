@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase'
 import { getPendingCount } from '@/lib/friends'
 import { App as CapApp } from '@capacitor/app'
 import { Capacitor } from '@capacitor/core'
+import { setupDailyNotification } from '@/lib/notifications'
 import LoginScreen from '@/components/auth/LoginScreen'
 import StartScreen from '@/components/game/StartScreen'
 import SetupScreen from '@/components/game/SetupScreen'
@@ -35,6 +36,9 @@ export default function Home() {
         .then(() => { window.history.replaceState({}, '', '/') })
     }
     initialize()
+
+    // 毎日リマインダー通知をセットアップ
+    setupDailyNotification().catch(() => {})
 
     // iOSネイティブ: OAuthコールバックのディープリンクを処理
     if (Capacitor.isNativePlatform()) {
