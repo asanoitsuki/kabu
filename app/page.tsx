@@ -12,12 +12,11 @@ import HistoryScreen from '@/components/game/HistoryScreen'
 import RankingScreen from '@/components/game/RankingScreen'
 import BottomNav, { NavTab } from '@/components/BottomNav'
 import AchievementsScreen from '@/components/game/AchievementsScreen'
-import ProfileScreen from '@/components/auth/ProfileScreen'
 
-type AppView = 'game' | 'profile' | 'history' | 'badges' | 'ranking'
+type AppView = 'game' | 'history' | 'badges' | 'ranking'
 
 export default function Home() {
-  const { phase, startSetup } = useGameStore()
+  const { phase, startSetup, resetGame } = useGameStore()
   const { initialize, user, initialized } = useAuthStore()
   const [view, setView] = useState<AppView>('game')
   const [guestMode, setGuestMode] = useState(false)
@@ -50,16 +49,23 @@ export default function Home() {
   }
 
   function handleTab(tab: NavTab) {
-    if (tab === 'home') setView('game')
-    else setView(tab as AppView)
+    if (tab === 'home') {
+      setView('game')
+    } else if (tab === 'startup') {
+      // 起業タブ → 会社設立フローへ
+      setView('game')
+      resetGame()
+      startSetup()
+    } else {
+      setView(tab as AppView)
+    }
   }
 
   const activeTab: NavTab =
-    view === 'profile'  ? 'profile'
-    : view === 'history'  ? 'history'
-    : view === 'badges'   ? 'badges'
-    : view === 'ranking'  ? 'ranking'
-    : 'home'
+    view === 'history' ? 'history'
+    : view === 'badges'  ? 'badges'
+    : view === 'ranking' ? 'ranking'
+    : (phase === 'setup' ? 'startup' : 'home')
 
   const navProps = {
     onShowHistory: () => setView('history'),
@@ -68,9 +74,7 @@ export default function Home() {
 
   return (
     <div className="pb-16">
-      {view === 'profile' ? (
-        <ProfileScreen />
-      ) : view === 'history' ? (
+      {view === 'history' ? (
         <HistoryScreen
           onBack={() => setView('game')}
           onPlay={() => { setView('game'); startSetup() }}

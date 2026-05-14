@@ -1,21 +1,22 @@
 'use client'
 
-export type NavTab = 'profile' | 'history' | 'badges' | 'ranking' | 'home'
+export type NavTab = 'startup' | 'history' | 'badges' | 'ranking' | 'home'
 
 interface Props {
   active: NavTab
   onTab: (tab: NavTab) => void
+  friendBadge?: number
 }
 
 const TABS: { id: NavTab; emoji: string; label: string }[] = [
-  { id: 'profile',  emoji: '👤', label: 'プロフィール' },
+  { id: 'startup',  emoji: '🏢', label: '起業' },
   { id: 'history',  emoji: '📊', label: '履歴' },
   { id: 'badges',   emoji: '🏅', label: '実績' },
   { id: 'ranking',  emoji: '🏆', label: 'ランキング' },
   { id: 'home',     emoji: '🏠', label: 'ホーム' },
 ]
 
-export default function BottomNav({ active, onTab }: Props) {
+export default function BottomNav({ active, onTab, friendBadge = 0 }: Props) {
   return (
     <div
       className="fixed bottom-0 left-0 right-0 z-40 bg-gray-950/95 backdrop-blur-md border-t border-gray-800"
@@ -33,7 +34,7 @@ export default function BottomNav({ active, onTab }: Props) {
               {isActive && (
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-indigo-500 rounded-full" />
               )}
-              <span className={`text-xl transition-all ${isActive ? 'scale-110' : 'opacity-50'}`}>
+              <span className={`text-xl transition-all relative ${isActive ? 'scale-110' : 'opacity-50'}`}>
                 {emoji}
               </span>
               <span className={`text-[10px] font-bold transition-colors ${isActive ? 'text-indigo-400' : 'text-gray-600'}`}>
