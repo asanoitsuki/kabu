@@ -29,20 +29,20 @@ export default function BottomNav({ active, onTab, pendingFriends = 0 }: Props) 
             <button
               key={id}
               onClick={() => onTab(id)}
-              className="flex-1 flex flex-col items-center pt-2 pb-2.5 gap-0.5 relative transition-colors"
+              className="flex-1 flex flex-col items-center pt-3 pb-3 gap-1 relative transition-colors min-h-[60px]"
             >
               {isActive && (
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-indigo-500 rounded-full" />
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-10 h-0.5 bg-indigo-500 rounded-full" />
               )}
-              <span className={`text-xl transition-all relative ${isActive ? 'scale-110' : 'opacity-50'}`}>
+              <span className={`text-2xl transition-all relative ${isActive ? 'scale-110' : 'opacity-50'}`}>
                 {emoji}
                 {id === 'profile' && pendingFriends > 0 && (
-                  <span className="absolute -top-1 -right-1 min-w-[14px] h-[14px] bg-red-500 rounded-full text-[9px] flex items-center justify-center font-black text-white px-0.5">
+                  <span className="absolute -top-1 -right-1 min-w-[16px] h-[16px] bg-red-500 rounded-full text-[9px] flex items-center justify-center font-black text-white px-0.5">
                     {pendingFriends}
                   </span>
                 )}
               </span>
-              <span className={`text-[10px] font-bold transition-colors ${isActive ? 'text-indigo-400' : 'text-gray-600'}`}>
+              <span className={`text-[11px] font-bold transition-colors ${isActive ? 'text-indigo-400' : 'text-gray-600'}`}>
                 {label}
               </span>
             </button>

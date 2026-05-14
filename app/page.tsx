@@ -106,7 +106,7 @@ export default function Home() {
   }
 
   return (
-    <div className="pb-16">
+    <div className="pb-20">
       {view === 'profile' ? (
         <ProfileScreen onClose={() => setView('game')} />
       ) : view === 'history' ? (
