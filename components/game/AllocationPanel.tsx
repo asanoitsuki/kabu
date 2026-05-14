@@ -3,6 +3,8 @@ import { useState } from 'react'
 import { useGameStore } from '@/store/gameStore'
 import { Allocation } from '@/lib/types'
 import { formatMoney, calcAllocationEffect } from '@/lib/gameLogic'
+import { hapticLight, hapticMedium } from '@/lib/haptics'
+import { soundTap } from '@/lib/sounds'
 
 const ITEMS: {
   key: keyof Allocation
@@ -11,16 +13,16 @@ const ITEMS: {
   hint: string
   color: string
   effectKey?: 'rdEffect' | 'mktEffect' | 'hireEffect' | 'capexEffect'
-  effectLabel?: string
 }[] = [
-  { key: 'rd',        label: '研究開発',      emoji: '🔬', hint: '売上に恒久的な底上げ', color: '#6366f1', effectKey: 'rdEffect',    effectLabel: '売上' },
-  { key: 'marketing', label: 'マーケティング', emoji: '📢', hint: '売上への直接効果が最大', color: '#f59e0b', effectKey: 'mktEffect',  effectLabel: '売上' },
-  { key: 'hiring',    label: '採用',          emoji: '👥', hint: '組織力・安定成長に寄与', color: '#10b981', effectKey: 'hireEffect', effectLabel: '売上' },
-  { key: 'capex',     label: '設備投資',      emoji: '🏗️',  hint: '長期的な生産能力強化',  color: '#3b82f6', effectKey: 'capexEffect', effectLabel: '売上' },
-  { key: 'dividend',  label: '配当',          emoji: '💸', hint: '株主還元で株価を安定化',  color: '#ec4899' },
+  { key: 'rd',        label: '研究開発',   emoji: '🔬', hint: '売上を恒久的に底上げ',  color: '#6366f1', effectKey: 'rdEffect'    },
+  { key: 'marketing', label: 'マーケ',     emoji: '📢', hint: '売上への直接効果が最大', color: '#f59e0b', effectKey: 'mktEffect'   },
+  { key: 'hiring',    label: '採用',       emoji: '👥', hint: '組織力・安定成長に寄与', color: '#10b981', effectKey: 'hireEffect'  },
+  { key: 'capex',     label: '設備投資',   emoji: '🏗️',  hint: '長期的な生産能力強化',  color: '#3b82f6', effectKey: 'capexEffect' },
+  { key: 'dividend',  label: '配当',       emoji: '💸', hint: '株主還元で株価を安定化', color: '#ec4899'                           },
 ]
 
-const PRESETS = [0, 10, 25, 50]
+// セグメントの選択肢 (% )
+const SEGMENTS = [0, 10, 20, 30, 50]
 
 export default function AllocationPanel({ onEndTurn }: { onEndTurn: () => void }) {
   const { financials, currentAllocation, setAllocation } = useGameStore()
@@ -40,14 +42,27 @@ export default function AllocationPanel({ onEndTurn }: { onEndTurn: () => void }
   )
 
   function apply(key: keyof Allocation, v: number) {
-    const clamped = Math.max(0, v)
-    const newVals = { ...values, [key]: clamped }
+    const newVals = { ...values, [key]: Math.max(0, v) }
     setValues(newVals)
     setAllocation(newVals)
   }
 
   function setPercent(key: keyof Allocation, pct: number) {
+    hapticLight()
+    soundTap()
     apply(key, Math.round(budget * pct / 100))
+  }
+
+  // 現在のセグメントに最も近いインデックス
+  function activeSegment(key: keyof Allocation): number {
+    const pct = budget > 0 ? (values[key] / budget) * 100 : 0
+    let closest = 0
+    let minDiff = Infinity
+    SEGMENTS.forEach((s, i) => {
+      const d = Math.abs(s - pct)
+      if (d < minDiff) { minDiff = d; closest = i }
+    })
+    return closest
   }
 
   function startEdit(key: keyof Allocation) {
@@ -63,80 +78,68 @@ export default function AllocationPanel({ onEndTurn }: { onEndTurn: () => void }
 
   return (
     <>
-      <div className="bg-gray-900 rounded-2xl border border-gray-800 overflow-hidden pb-2">
-        {/* ヘッダー */}
-        <div className="px-4 pt-4 pb-3 border-b border-gray-800">
-          <div className="flex items-center justify-between mb-3">
-            <div>
-              <h2 className="text-white font-black text-base">💼 予算配分</h2>
-              <div className="text-gray-500 text-xs mt-0.5">
-                利用可能: <span className="text-white font-bold">{formatMoney(budget)}</span>
-              </div>
-            </div>
-            <div className={`text-right px-3 py-1.5 rounded-xl ${overBudget ? 'bg-red-950 border border-red-800' : 'bg-gray-800'}`}>
-              <div className={`text-xs ${overBudget ? 'text-red-400' : 'text-gray-400'}`}>残り</div>
-              <div className={`font-black text-sm ${overBudget ? 'text-red-400' : 'text-emerald-400'}`}>
-                {formatMoney(remaining)}
+      <div className="bg-gray-900 rounded-2xl border border-gray-800 overflow-hidden">
+
+        {/* ─── ヘッダー ─── */}
+        <div className="px-4 pt-3 pb-2.5 border-b border-gray-800">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-white font-black text-sm">💼 予算配分</span>
+            <div className="flex items-center gap-2">
+              {totalSpent > 0 && (
+                <span className="text-emerald-400 text-xs font-bold">
+                  +{effects.totalRevEffect.toFixed(1)}%収益
+                </span>
+              )}
+              <div className={`px-2.5 py-1 rounded-lg text-xs font-black ${
+                overBudget ? 'bg-red-950 text-red-400' : 'bg-gray-800 text-emerald-400'
+              }`}>
+                残 {formatMoney(remaining)}
               </div>
             </div>
           </div>
-
           {/* 使用率バー */}
-          <div className="h-2.5 bg-gray-800 rounded-full overflow-hidden">
+          <div className="h-1.5 bg-gray-800 rounded-full overflow-hidden">
             <div
               className="h-full rounded-full transition-all duration-300"
               style={{
                 width: `${usagePercent}%`,
                 background: overBudget
-                  ? 'linear-gradient(90deg, #ef4444, #f97316)'
-                  : 'linear-gradient(90deg, #6366f1, #a855f7)',
+                  ? 'linear-gradient(90deg,#ef4444,#f97316)'
+                  : 'linear-gradient(90deg,#6366f1,#a855f7)',
               }}
             />
           </div>
-
-          {/* 合計効果サマリー */}
-          {totalSpent > 0 && (
-            <div className="mt-3 bg-gray-800/60 rounded-xl px-3 py-2 flex items-center gap-2">
-              <span className="text-xs text-gray-400">この配分での予測収益効果</span>
-              <span className="text-emerald-400 font-black text-sm ml-auto">
-                +{effects.totalRevEffect.toFixed(1)}%
-              </span>
-              <span className="text-gray-500 text-xs">収益</span>
-            </div>
-          )}
         </div>
 
-        {/* 各項目 */}
-        <div className="p-4 space-y-4">
-          {ITEMS.map(({ key, label, emoji, hint, color, effectKey, effectLabel }) => {
-            const pct = budget > 0 ? (values[key] / budget) * 100 : 0
-            const isEditing = editingKey === key
+        {/* ─── 各項目（コンパクト） ─── */}
+        <div className="divide-y divide-gray-800/60">
+          {ITEMS.map(({ key, label, emoji, color, effectKey }) => {
             const effect = effectKey ? effects[effectKey] : null
-            return (
-              <div key={key}>
-                {/* ラベル行 */}
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2 flex-1 min-w-0">
-                    <span className="text-xl">{emoji}</span>
-                    <span className="text-white text-sm font-bold">{label}</span>
-                    {effect !== null && effect > 0 && (
-                      <span
-                        className="text-xs px-1.5 py-0.5 rounded-md font-bold flex-shrink-0"
-                        style={{ backgroundColor: color + '25', color }}
-                      >
-                        +{effect.toFixed(1)}% {effectLabel}↑
-                      </span>
-                    )}
-                    {key === 'dividend' && values.dividend > 0 && (
-                      <span className="text-xs px-1.5 py-0.5 rounded-md font-bold flex-shrink-0 bg-pink-950 text-pink-300">
-                        株価安定↑
-                      </span>
-                    )}
-                  </div>
+            const active = activeSegment(key)
+            const isEditing = editingKey === key
 
-                  {/* 金額（タップで編集） */}
+            return (
+              <div key={key} className="px-3 py-2.5">
+                {/* 上段: ラベル + 効果 + 金額 */}
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-lg leading-none">{emoji}</span>
+                  <span className="text-white text-sm font-bold flex-1">{label}</span>
+                  {effect !== null && effect > 0 && (
+                    <span
+                      className="text-[10px] px-1.5 py-0.5 rounded font-bold"
+                      style={{ backgroundColor: color + '25', color }}
+                    >
+                      +{effect.toFixed(1)}%
+                    </span>
+                  )}
+                  {key === 'dividend' && values.dividend > 0 && (
+                    <span className="text-[10px] px-1.5 py-0.5 rounded font-bold bg-pink-950 text-pink-300">
+                      安定↑
+                    </span>
+                  )}
+                  {/* 金額タップ編集 */}
                   {isEditing ? (
-                    <div className="flex items-center gap-1 flex-shrink-0">
+                    <div className="flex items-center gap-0.5">
                       <input
                         type="number"
                         inputMode="numeric"
@@ -146,60 +149,37 @@ export default function AllocationPanel({ onEndTurn }: { onEndTurn: () => void }
                         onKeyDown={e => e.key === 'Enter' && commitEdit(key)}
                         autoFocus
                         placeholder="0"
-                        className="w-20 bg-gray-800 text-white text-sm font-bold text-right rounded-lg px-2 py-1 outline-none border border-gray-600 focus:border-indigo-500"
+                        className="w-16 bg-gray-800 text-white text-xs font-bold text-right rounded px-1.5 py-1 outline-none border border-indigo-500"
                       />
-                      <span className="text-gray-500 text-xs">万円</span>
+                      <span className="text-gray-500 text-[10px]">万</span>
                     </div>
                   ) : (
                     <button
                       onClick={() => startEdit(key)}
-                      className="text-sm font-bold font-mono px-2 py-1 rounded-lg border transition-colors active:scale-95 flex-shrink-0"
-                      style={{ color, borderColor: color + '40', backgroundColor: color + '10' }}
+                      className="text-xs font-bold font-mono px-2 py-1 rounded-lg border transition-colors active:scale-95"
+                      style={{ color, borderColor: color + '50', backgroundColor: color + '12' }}
                     >
                       {formatMoney(values[key])}
                     </button>
                   )}
                 </div>
 
-                {/* hint */}
-                <div className="text-gray-600 text-xs mb-2 ml-8">{hint}</div>
-
-                {/* プリセットボタン */}
-                <div className="grid grid-cols-4 gap-1.5 mb-2">
-                  {PRESETS.map(p => {
-                    const isActive = Math.abs(values[key] - Math.round(budget * p / 100)) < 1000
-                    return (
-                      <button
-                        key={p}
-                        onClick={() => setPercent(key, p)}
-                        className="py-2.5 rounded-xl text-sm font-bold transition-all active:scale-95"
-                        style={{
-                          backgroundColor: isActive ? color + '25' : '#1f2937',
-                          color: isActive ? color : '#6b7280',
-                          border: `1.5px solid ${isActive ? color + '60' : 'transparent'}`,
-                        }}
-                      >
-                        {p}%
-                      </button>
-                    )
-                  })}
-                </div>
-
-                {/* スライダー */}
-                <div className="relative flex items-center">
-                  <input
-                    type="range"
-                    min={0}
-                    max={Math.round(budget)}
-                    step={Math.max(10000, Math.round(budget / 100))}
-                    value={values[key]}
-                    onChange={e => apply(key, parseInt(e.target.value))}
-                    className="w-full h-3 rounded-full appearance-none cursor-pointer"
-                    style={{
-                      accentColor: color,
-                      background: `linear-gradient(to right, ${color} ${pct}%, #374151 ${pct}%)`,
-                    }}
-                  />
+                {/* 下段: セグメントボタン */}
+                <div className="grid grid-cols-5 gap-1">
+                  {SEGMENTS.map((pct, i) => (
+                    <button
+                      key={pct}
+                      onClick={() => setPercent(key, pct)}
+                      className="py-2 rounded-xl text-xs font-black transition-all active:scale-95"
+                      style={{
+                        backgroundColor: active === i ? color + '28' : '#1f2937',
+                        color: active === i ? color : '#6b7280',
+                        border: `1.5px solid ${active === i ? color + '70' : 'transparent'}`,
+                      }}
+                    >
+                      {pct}%
+                    </button>
+                  ))}
                 </div>
               </div>
             )
@@ -207,42 +187,21 @@ export default function AllocationPanel({ onEndTurn }: { onEndTurn: () => void }
         </div>
       </div>
 
-      {/* 次のターンへ（画面下部固定） */}
-      <div className="sticky bottom-16 left-0 right-0 px-4 pb-4 pt-2 bg-gradient-to-t from-gray-950 via-gray-950/90 to-transparent pointer-events-none">
+      {/* ─── ターン終了ボタン（固定） ─── */}
+      <div className="sticky bottom-16 left-0 right-0 px-0 pb-2 pt-2 bg-gradient-to-t from-gray-950 via-gray-950/90 to-transparent pointer-events-none">
         <button
-          onClick={onEndTurn}
+          onClick={() => { hapticMedium(); onEndTurn() }}
           disabled={overBudget}
           className="w-full font-black py-5 rounded-2xl text-lg transition-all active:scale-95 disabled:cursor-not-allowed pointer-events-auto shadow-2xl"
           style={{
-            background: overBudget ? '#1f2937' : 'linear-gradient(135deg, #6366f1, #a855f7)',
+            background: overBudget ? '#1f2937' : 'linear-gradient(135deg,#6366f1,#a855f7)',
             color: overBudget ? '#4b5563' : 'white',
-            boxShadow: overBudget ? 'none' : '0 8px 32px rgba(99,102,241,0.5)',
+            boxShadow: overBudget ? 'none' : '0 8px 32px rgba(99,102,241,0.45)',
           }}
         >
           {overBudget ? '⚠️ 予算超過！' : '次のターンへ →'}
         </button>
       </div>
-
-      <style>{`
-        input[type='range']::-webkit-slider-thumb {
-          -webkit-appearance: none;
-          width: 28px;
-          height: 28px;
-          border-radius: 50%;
-          background: white;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.4);
-          cursor: pointer;
-        }
-        input[type='range']::-moz-range-thumb {
-          width: 28px;
-          height: 28px;
-          border-radius: 50%;
-          background: white;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.4);
-          cursor: pointer;
-          border: none;
-        }
-      `}</style>
     </>
   )
 }
