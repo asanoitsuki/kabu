@@ -1,11 +1,12 @@
 'use client'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useGameStore } from '@/store/gameStore'
 import { useAuthStore } from '@/store/authStore'
 import { cloudSaveGame, saveGameResult } from '@/lib/cloudSave'
 import { getRating, formatMoney } from '@/lib/gameLogic'
 import { checkAchievements } from '@/lib/achievements'
-import { useAchievementStore } from '@/store/achievementStore'
+import { useAchievementStore, calcXpGain, calcLevel, xpToNextLevel } from '@/store/achievementStore'
+import { upsertProfile, getProfile } from '@/lib/profile'
 import StockChart from './StockChart'
 import AdBanner from '@/components/AdBanner'
 
@@ -24,17 +25,16 @@ interface Props {
 }
 
 export default function GameOverScreen({ onShowHistory, onShowRanking }: Props) {
-  const { company, stockHistory, financials, reports, resetGame, startSetup, difficulty } = useGameStore()
+  const { company, stockHistory, financials, reports, resetGame, startSetup, difficulty, bankrupted } = useGameStore()
   const { user } = useAuthStore()
-  const { unlockedIds, newIds, unlock, recordPlay, totalPlays, playedIndustries } = useAchievementStore()
-  const savedRef = useRef(false)
+  const { unlockedIds, unlock, recordPlay, totalPlays, playedIndustries, addXp, xp } = useAchievementStore()
   const [sharing, setSharing] = useState(false)
   const [copied, setCopied] = useState(false)
-  const [shareUrl, setShareUrl] = useState('')
+  const [xpGained, setXpGained] = useState(0)
 
   if (!company) return null
 
-  const { grade, message } = getRating(stockHistory, difficulty)
+  const { grade, message } = getRating(stockHistory, difficulty, bankrupted)
   const ipoPrice = stockHistory[0]?.price ?? 1
   const finalPrice = stockHistory.at(-1)?.price ?? 1
   const totalReturn = ((finalPrice - ipoPrice) / ipoPrice * 100).toFixed(1)
@@ -43,7 +43,6 @@ export default function GameOverScreen({ onShowHistory, onShowRanking }: Props) 
   const cfg = GRADE_CONFIG[grade]
   const isGood = ['S', 'A', 'B'].includes(grade)
 
-  // 紙吹雪 + クラウド保存
   useEffect(() => {
     if (isGood) {
       import('canvas-confetti').then(({ default: confetti }) => {
@@ -61,8 +60,6 @@ export default function GameOverScreen({ onShowHistory, onShowRanking }: Props) 
       })
     }
 
-    // ゲーム終了状態をクラウドに保存（リロードしても1回だけ）
-    // 実績チェック
     const state = useGameStore.getState()
     const lowestReturn = Math.min(...state.stockHistory.map(h => (h.price - state.stockHistory[0].price) / state.stockHistory[0].price))
     recordPlay(company.industry)
@@ -74,6 +71,11 @@ export default function GameOverScreen({ onShowHistory, onShowRanking }: Props) 
     )
     unlock(newAchievements)
 
+    // XP付与
+    const gained = calcXpGain(grade, difficulty)
+    addXp(gained)
+    setXpGained(gained)
+
     if (user) {
       const saveKey = `result_saved_${user.id}_${state.company?.name}_${state.turn}`
       if (!localStorage.getItem(saveKey)) {
@@ -81,6 +83,18 @@ export default function GameOverScreen({ onShowHistory, onShowRanking }: Props) 
         const displayName = user.user_metadata?.full_name ?? user.email ?? '匿名'
         cloudSaveGame(user.id, state)
         saveGameResult(user.id, displayName, state)
+
+        // XP/レベルをSupabaseプロフィールへ同期
+        const newTotalXp = useAchievementStore.getState().xp
+        getProfile(user.id).then(profile => {
+          upsertProfile({
+            id: user.id,
+            username: profile?.username ?? (user.user_metadata?.full_name ?? user.email ?? ''),
+            avatar: profile?.avatar ?? '😊',
+            xp: newTotalXp,
+            level: calcLevel(newTotalXp),
+          })
+        })
       }
     }
   }, [])
@@ -98,19 +112,21 @@ export default function GameOverScreen({ onShowHistory, onShowRanking }: Props) 
       })
       const base = 'https://kabu-three.vercel.app'
       const url = `${base}/result?${qs}`
-      setShareUrl(url)
       const imageApiUrl = `${base}/api/og/result?${qs}`
       const text = `「${company.name}」を経営して${grade}ランク達成！株価${Number(totalReturn) >= 0 ? '+' : ''}${totalReturn}%\n#株式会社シミュレーター`
 
-      const imgRes = await fetch(imageApiUrl)
-      const blob = await imgRes.blob()
-      const file = new File([blob], 'result.png', { type: 'image/png' })
-      const companyName = company.name
+      try {
+        const imgRes = await fetch(imageApiUrl)
+        const blob = await imgRes.blob()
+        const file = new File([blob], 'result.png', { type: 'image/png' })
+        if ((navigator as any).canShare?.({ files: [file] })) {
+          await navigator.share({ files: [file], text, url, title: `${company.name} − ${grade}ランク！` })
+          return
+        }
+      } catch {}
 
-      if ((navigator as any).canShare?.({ files: [file] })) {
-        await navigator.share({ files: [file], text, url, title: `${companyName} − ${grade}ランク！` })
-      } else if (navigator.share) {
-        await navigator.share({ title: `${companyName} − ${grade}ランク！`, text, url })
+      if (navigator.share) {
+        await navigator.share({ title: `${company.name} − ${grade}ランク！`, text, url })
       } else {
         await navigator.clipboard.writeText(`${text}\n${url}`)
         setCopied(true)
@@ -123,12 +139,16 @@ export default function GameOverScreen({ onShowHistory, onShowRanking }: Props) 
     }
   }
 
+  const { progress: xpProgress, current: xpCurrent, required: xpRequired } = xpToNextLevel(xp)
+
   return (
     <div className="min-h-screen bg-gray-950 text-white p-4">
       <div className="max-w-lg mx-auto py-8 space-y-5">
 
         <div className="text-center">
-          <div className="text-gray-400 text-xs font-bold uppercase tracking-widest mb-3">最終決算</div>
+          <div className="text-gray-400 text-xs font-bold uppercase tracking-widest mb-3">
+            {bankrupted ? '💸 倒産' : '最終決算'}
+          </div>
           <div
             className="w-20 h-20 rounded-3xl flex items-center justify-center text-3xl font-black mx-auto mb-4 shadow-2xl"
             style={{ backgroundColor: company.color, boxShadow: `0 16px 48px ${company.color}60` }}
@@ -147,11 +167,39 @@ export default function GameOverScreen({ onShowHistory, onShowRanking }: Props) 
             {grade}
           </div>
           <p className="text-white font-bold text-lg">{message}</p>
-          <div className={`mt-3 text-3xl font-black ${Number(totalReturn) >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-            {Number(totalReturn) >= 0 ? '+' : ''}{totalReturn}%
-          </div>
-          <div className="text-gray-400 text-sm">IPO比株価上昇率</div>
+          {!bankrupted && (
+            <div className={`mt-3 text-3xl font-black ${Number(totalReturn) >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+              {Number(totalReturn) >= 0 ? '+' : ''}{totalReturn}%
+            </div>
+          )}
+          <div className="text-gray-400 text-sm mt-1">{bankrupted ? '資金が尽きました' : 'IPO比株価上昇率'}</div>
         </div>
+
+        {/* XP獲得表示 */}
+        {xpGained > 0 && (
+          <div className="bg-indigo-950 border border-indigo-800 rounded-2xl p-4">
+            <div className="flex items-center gap-3 mb-3">
+              <span className="text-2xl">⭐</span>
+              <div className="flex-1">
+                <div className="text-white font-black text-sm">+{xpGained} XP 獲得！</div>
+                <div className="text-indigo-300 text-xs">Lv.{calcLevel(xp)} · 累計 {xp.toLocaleString()} XP</div>
+              </div>
+            </div>
+            {xpRequired > 0 && (
+              <div>
+                <div className="h-2 bg-indigo-900 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-gradient-to-r from-indigo-400 to-purple-400 rounded-full transition-all duration-700"
+                    style={{ width: `${xpProgress}%` }}
+                  />
+                </div>
+                <div className="text-indigo-400 text-xs mt-1 text-right">
+                  {xpCurrent.toLocaleString()} / {xpRequired.toLocaleString()} XP（次のレベルまで）
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
         {user && (
           <div className="bg-gray-900 border border-gray-800 rounded-2xl p-3 flex items-center gap-2 text-sm">
@@ -198,22 +246,6 @@ export default function GameOverScreen({ onShowHistory, onShowRanking }: Props) 
             <><span className="text-xl">🖼️</span><span>結果カードをシェアする</span></>
           )}
         </button>
-
-        {shareUrl && (
-          <div className="flex items-center gap-2 bg-gray-900 border border-gray-800 rounded-xl px-3 py-2">
-            <span className="text-gray-500 text-xs flex-1 truncate">{shareUrl}</span>
-            <button
-              onClick={async () => {
-                await navigator.clipboard.writeText(shareUrl)
-                setCopied(true)
-                setTimeout(() => setCopied(false), 2000)
-              }}
-              className="text-xs text-indigo-400 hover:text-indigo-300 font-bold flex-shrink-0 transition-colors"
-            >
-              {copied ? '✓' : 'コピー'}
-            </button>
-          </div>
-        )}
 
         <AdBanner slot="7291202236" />
 

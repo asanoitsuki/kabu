@@ -7,6 +7,7 @@ import { formatMoney, INDUSTRY_STATS } from '@/lib/gameLogic'
 import StockChart from './StockChart'
 import AllocationPanel from './AllocationPanel'
 import TurnReportModal from './TurnReportModal'
+import EventLogModal from './EventLogModal'
 import UserMenu from '@/components/auth/UserMenu'
 import { TurnReport } from '@/lib/types'
 
@@ -29,6 +30,7 @@ export default function GameScreen({ onShowHistory, onShowRanking }: Props) {
   const [savedFlash, setSavedFlash] = useState(false)
   const [saving, setSaving] = useState(false)
   const [showNewCompanyDialog, setShowNewCompanyDialog] = useState(false)
+  const [showEventLog, setShowEventLog] = useState(false)
 
   // ターン終了後にクラウド保存
   useEffect(() => {
@@ -186,8 +188,16 @@ export default function GameScreen({ onShowHistory, onShowRanking }: Props) {
         <StockChart />
         <AllocationPanel onEndTurn={handleEndTurn} />
 
-        <div className="text-center text-gray-700 text-xs">
-          残り {maxTurns - (turn - 1)} ターン · {INDUSTRY_STATS[company.industry].per}x PER
+        <div className="flex items-center justify-between">
+          <div className="text-gray-700 text-xs">
+            残り {maxTurns - (turn - 1)} ターン · {INDUSTRY_STATS[company.industry].per}x PER
+          </div>
+          <button
+            onClick={() => setShowEventLog(true)}
+            className="text-xs text-gray-500 hover:text-gray-300 border border-gray-800 hover:border-gray-600 rounded-xl px-3 py-1.5 transition-colors"
+          >
+            📋 イベント履歴
+          </button>
         </div>
 
         <button
@@ -201,6 +211,7 @@ export default function GameScreen({ onShowHistory, onShowRanking }: Props) {
       {showReport && lastReport && (
         <TurnReportModal report={lastReport} onClose={() => setShowReport(false)} />
       )}
+      {showEventLog && <EventLogModal onClose={() => setShowEventLog(false)} />}
 
       {/* 新しい会社作成確認ダイアログ */}
       {showNewCompanyDialog && (

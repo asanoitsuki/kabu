@@ -2,13 +2,21 @@
 import { useState } from 'react'
 import { useGameStore } from '@/store/gameStore'
 import { Allocation } from '@/lib/types'
-import { formatMoney } from '@/lib/gameLogic'
+import { formatMoney, calcAllocationEffect } from '@/lib/gameLogic'
 
-const ITEMS: { key: keyof Allocation; label: string; emoji: string; hint: string; color: string }[] = [
-  { key: 'rd',        label: '研究開発',      emoji: '🔬', hint: '収益力・製品力が向上',    color: '#6366f1' },
-  { key: 'marketing', label: 'マーケティング', emoji: '📢', hint: '売上に直結する即効薬',    color: '#f59e0b' },
-  { key: 'hiring',    label: '採用',          emoji: '👥', hint: '組織力を高めて安定成長',  color: '#10b981' },
-  { key: 'capex',     label: '設備投資',      emoji: '🏗️',  hint: '長期的な生産能力を強化', color: '#3b82f6' },
+const ITEMS: {
+  key: keyof Allocation
+  label: string
+  emoji: string
+  hint: string
+  color: string
+  effectKey?: 'rdEffect' | 'mktEffect' | 'hireEffect' | 'capexEffect'
+  effectLabel?: string
+}[] = [
+  { key: 'rd',        label: '研究開発',      emoji: '🔬', hint: '売上に恒久的な底上げ', color: '#6366f1', effectKey: 'rdEffect',    effectLabel: '売上' },
+  { key: 'marketing', label: 'マーケティング', emoji: '📢', hint: '売上への直接効果が最大', color: '#f59e0b', effectKey: 'mktEffect',  effectLabel: '売上' },
+  { key: 'hiring',    label: '採用',          emoji: '👥', hint: '組織力・安定成長に寄与', color: '#10b981', effectKey: 'hireEffect', effectLabel: '売上' },
+  { key: 'capex',     label: '設備投資',      emoji: '🏗️',  hint: '長期的な生産能力強化',  color: '#3b82f6', effectKey: 'capexEffect', effectLabel: '売上' },
   { key: 'dividend',  label: '配当',          emoji: '💸', hint: '株主還元で株価を安定化',  color: '#ec4899' },
 ]
 
@@ -25,6 +33,11 @@ export default function AllocationPanel({ onEndTurn }: { onEndTurn: () => void }
   const remaining = budget - totalSpent
   const overBudget = remaining < 0
   const usagePercent = Math.min(100, (totalSpent / budget) * 100)
+
+  const effects = calcAllocationEffect(
+    { rd: values.rd, marketing: values.marketing, hiring: values.hiring, capex: values.capex },
+    totalSpent > 0 ? totalSpent : 1
+  )
 
   function apply(key: keyof Allocation, v: number) {
     const clamped = Math.max(0, v)
@@ -67,6 +80,8 @@ export default function AllocationPanel({ onEndTurn }: { onEndTurn: () => void }
               </div>
             </div>
           </div>
+
+          {/* 使用率バー */}
           <div className="h-2.5 bg-gray-800 rounded-full overflow-hidden">
             <div
               className="h-full rounded-full transition-all duration-300"
@@ -78,26 +93,50 @@ export default function AllocationPanel({ onEndTurn }: { onEndTurn: () => void }
               }}
             />
           </div>
+
+          {/* 合計効果サマリー */}
+          {totalSpent > 0 && (
+            <div className="mt-3 bg-gray-800/60 rounded-xl px-3 py-2 flex items-center gap-2">
+              <span className="text-xs text-gray-400">この配分での予測収益効果</span>
+              <span className="text-emerald-400 font-black text-sm ml-auto">
+                +{effects.totalRevEffect.toFixed(1)}%
+              </span>
+              <span className="text-gray-500 text-xs">収益</span>
+            </div>
+          )}
         </div>
 
         {/* 各項目 */}
         <div className="p-4 space-y-4">
-          {ITEMS.map(({ key, label, emoji, hint, color }) => {
+          {ITEMS.map(({ key, label, emoji, hint, color, effectKey, effectLabel }) => {
             const pct = budget > 0 ? (values[key] / budget) * 100 : 0
             const isEditing = editingKey === key
+            const effect = effectKey ? effects[effectKey] : null
             return (
               <div key={key}>
                 {/* ラベル行 */}
                 <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-1 min-w-0">
                     <span className="text-xl">{emoji}</span>
                     <span className="text-white text-sm font-bold">{label}</span>
-                    <span className="text-gray-600 text-xs hidden sm:inline">{hint}</span>
+                    {effect !== null && effect > 0 && (
+                      <span
+                        className="text-xs px-1.5 py-0.5 rounded-md font-bold flex-shrink-0"
+                        style={{ backgroundColor: color + '25', color }}
+                      >
+                        +{effect.toFixed(1)}% {effectLabel}↑
+                      </span>
+                    )}
+                    {key === 'dividend' && values.dividend > 0 && (
+                      <span className="text-xs px-1.5 py-0.5 rounded-md font-bold flex-shrink-0 bg-pink-950 text-pink-300">
+                        株価安定↑
+                      </span>
+                    )}
                   </div>
 
                   {/* 金額（タップで編集） */}
                   {isEditing ? (
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-1 flex-shrink-0">
                       <input
                         type="number"
                         inputMode="numeric"
@@ -114,13 +153,16 @@ export default function AllocationPanel({ onEndTurn }: { onEndTurn: () => void }
                   ) : (
                     <button
                       onClick={() => startEdit(key)}
-                      className="text-sm font-bold font-mono px-2 py-1 rounded-lg border transition-colors active:scale-95"
+                      className="text-sm font-bold font-mono px-2 py-1 rounded-lg border transition-colors active:scale-95 flex-shrink-0"
                       style={{ color, borderColor: color + '40', backgroundColor: color + '10' }}
                     >
                       {formatMoney(values[key])}
                     </button>
                   )}
                 </div>
+
+                {/* hint */}
+                <div className="text-gray-600 text-xs mb-2 ml-8">{hint}</div>
 
                 {/* プリセットボタン */}
                 <div className="grid grid-cols-4 gap-1.5 mb-2">
@@ -143,7 +185,7 @@ export default function AllocationPanel({ onEndTurn }: { onEndTurn: () => void }
                   })}
                 </div>
 
-                {/* スライダー（太め） */}
+                {/* スライダー */}
                 <div className="relative flex items-center">
                   <input
                     type="range"

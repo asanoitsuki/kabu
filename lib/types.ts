@@ -69,4 +69,5 @@ export interface GameState {
   industryStats: {
     [K in Industry]: { per: number; growth: number }
   }
+  bankrupted?: boolean  // 資金ゼロで倒産した場合 true
 }

@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { useGameStore } from '@/store/gameStore'
 import { Difficulty, Industry } from '@/lib/types'
 import { DIFFICULTY_CONFIG, INDUSTRY_COLORS, INDUSTRY_STATS } from '@/lib/gameLogic'
+import { detectBannedWord } from '@/lib/bannedWords'
 
 const INDUSTRIES: { id: Industry; emoji: string; desc: string; bg: string; flavor: string }[] = [
   { id: 'IT',     emoji: '💻', desc: '高成長・高PER。リスクと爆発力の業種',     bg: 'from-indigo-950 to-blue-950',    flavor: 'AIで世界を変える' },
@@ -12,16 +13,7 @@ const INDUSTRIES: { id: Industry; emoji: string; desc: string; bg: string; flavo
   { id: 'エンタメ', emoji: '🎮', desc: '波が大きい。ヒット次第で大化け',         bg: 'from-pink-950 to-purple-950',    flavor: '熱狂を生み出せ' },
 ]
 
-const INDUSTRY_DIFF: Record<Industry, { label: string; stars: number; color: string }> = {
-  'IT':     { label: 'Hard',   stars: 4, color: '#ef4444' },
-  '製造':   { label: 'Easy',   stars: 2, color: '#10b981' },
-  '飲食':   { label: 'Normal', stars: 3, color: '#f59e0b' },
-  '金融':   { label: 'Easy',   stars: 1, color: '#10b981' },
-  'エンタメ': { label: 'Expert', stars: 5, color: '#ec4899' },
-}
-
 const COLORS = ['#6366f1', '#f59e0b', '#ef4444', '#10b981', '#ec4899', '#3b82f6', '#8b5cf6']
-
 const DIFFICULTY_ORDER: Difficulty[] = ['easy', 'normal', 'hard', 'hell']
 
 export default function SetupScreen() {
@@ -31,6 +23,21 @@ export default function SetupScreen() {
   const [color, setColor] = useState(COLORS[0])
   const [difficulty, setDifficulty] = useState<Difficulty>('normal')
   const [step, setStep] = useState<1 | 2 | 3>(1)
+  const [nameError, setNameError] = useState<string | null>(null)
+
+  function handleNameChange(v: string) {
+    setName(v)
+    setNameError(null)
+  }
+
+  function handleNextFromStep1() {
+    const banned = detectBannedWord(name.trim())
+    if (banned) {
+      setNameError(`その名前は使用できません`)
+      return
+    }
+    setStep(2)
+  }
 
   const canNext = name.trim().length >= 1
   const canSubmit = canNext && industry !== null
@@ -68,13 +75,21 @@ export default function SetupScreen() {
               <input
                 type="text"
                 value={name}
-                onChange={e => setName(e.target.value)}
+                onChange={e => handleNameChange(e.target.value)}
                 placeholder="例: 株式会社テックスター"
                 maxLength={20}
                 autoFocus
-                className="w-full bg-gray-900 text-white rounded-xl px-4 py-4 text-lg outline-none border-2 border-gray-800 focus:border-indigo-500 transition-colors placeholder-gray-700"
+                className={`w-full bg-gray-900 text-white rounded-xl px-4 py-4 text-lg outline-none border-2 transition-colors placeholder-gray-700 ${
+                  nameError ? 'border-red-500' : 'border-gray-800 focus:border-indigo-500'
+                }`}
               />
-              <div className="text-gray-600 text-xs mt-1 text-right">{name.length}/20</div>
+              <div className="flex justify-between mt-1">
+                {nameError
+                  ? <p className="text-red-400 text-xs font-bold">{nameError}</p>
+                  : <span />
+                }
+                <div className="text-gray-600 text-xs">{name.length}/20</div>
+              </div>
             </div>
 
             <div>
@@ -114,7 +129,7 @@ export default function SetupScreen() {
 
             <button
               disabled={!canNext}
-              onClick={() => setStep(2)}
+              onClick={handleNextFromStep1}
               className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:bg-gray-800 disabled:text-gray-600 text-white font-bold py-4 rounded-xl text-lg transition-all hover:scale-105 active:scale-95 disabled:scale-100 disabled:cursor-not-allowed"
             >
               次へ → 業種を選ぶ
@@ -134,7 +149,6 @@ export default function SetupScreen() {
             <div className="space-y-3">
               {INDUSTRIES.map(({ id, emoji, desc, bg, flavor }) => {
                 const stats = INDUSTRY_STATS[id]
-                const diff = INDUSTRY_DIFF[id]
                 const isSelected = industry === id
                 return (
                   <button
@@ -160,9 +174,6 @@ export default function SetupScreen() {
                               style={{ backgroundColor: INDUSTRY_COLORS[id] + '40', color: INDUSTRY_COLORS[id] }}
                             >
                               PER {stats.per}x
-                            </span>
-                            <span className="text-xs font-bold px-2 py-0.5 rounded-full" style={{ color: diff.color, backgroundColor: diff.color + '20' }}>
-                              {'★'.repeat(diff.stars)}{'☆'.repeat(5 - diff.stars)} {diff.label}
                             </span>
                           </div>
                           <div className="text-gray-400 text-xs mt-1 italic">"{flavor}"</div>
@@ -204,27 +215,23 @@ export default function SetupScreen() {
             <div className="text-center mb-6">
               <div className="text-4xl mb-3">⚙️</div>
               <h1 className="text-3xl font-black text-white">難易度を選ぶ</h1>
-              <p className="text-gray-500 mt-1">100種類のイベントがあなたを待っている</p>
+              <p className="text-gray-500 mt-1">難しいほど獲得XPが多くなる</p>
             </div>
 
             <div className="space-y-3">
               {DIFFICULTY_ORDER.map((d) => {
                 const cfg = DIFFICULTY_CONFIG[d]
                 const isSelected = difficulty === d
-                const eventPct = Math.round(cfg.eventRate * 100)
+                const xpMult: Record<Difficulty, string> = { easy: '×1', normal: '×1.5', hard: '×2', hell: '×3' }
                 return (
                   <button
                     key={d}
                     onClick={() => setDifficulty(d)}
                     className={`w-full text-left rounded-2xl border-2 p-4 transition-all ${
-                      isSelected
-                        ? 'border-white scale-[1.02]'
-                        : 'border-gray-800 hover:border-gray-600'
+                      isSelected ? 'border-white scale-[1.02]' : 'border-gray-800 hover:border-gray-600'
                     }`}
                     style={{
-                      background: isSelected
-                        ? `linear-gradient(135deg, ${cfg.color}20, transparent)`
-                        : 'transparent',
+                      background: isSelected ? `linear-gradient(135deg, ${cfg.color}20, transparent)` : 'transparent',
                     }}
                   >
                     <div className="flex items-center gap-4">
@@ -235,20 +242,19 @@ export default function SetupScreen() {
                         {cfg.emoji}
                       </div>
                       <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
+                        <div className="flex items-center gap-2 mb-1 flex-wrap">
                           <span className="text-white font-black text-lg">{cfg.label}</span>
+                          <span className="text-xs px-2 py-0.5 rounded-full font-bold bg-indigo-950 text-indigo-300 border border-indigo-800">
+                            XP {xpMult[d]}
+                          </span>
                           <span
                             className="text-xs px-2 py-0.5 rounded-full font-bold"
                             style={{ backgroundColor: cfg.color + '30', color: cfg.color }}
                           >
-                            Sランク {cfg.sRank >= 5 ? `×${cfg.sRank + 1}以上` : `×${cfg.sRank + 1}以上`}
+                            Sランク {cfg.sRank + 1}倍以上
                           </span>
                         </div>
                         <p className="text-gray-400 text-xs">{cfg.desc}</p>
-                        <div className="flex gap-3 mt-1.5 text-xs text-gray-600">
-                          <span>イベント発生率 <span style={{ color: cfg.color }} className="font-bold">{eventPct}%</span></span>
-                          <span>コスト増加率 <span style={{ color: cfg.color }} className="font-bold">×{cfg.costGrowth}</span>/ターン</span>
-                        </div>
                       </div>
                       {isSelected && (
                         <div className="w-7 h-7 rounded-full bg-white flex items-center justify-center flex-shrink-0">

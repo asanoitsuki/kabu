@@ -11,10 +11,10 @@ import GameOverScreen from '@/components/game/GameOverScreen'
 import HistoryScreen from '@/components/game/HistoryScreen'
 import RankingScreen from '@/components/game/RankingScreen'
 import BottomNav, { NavTab } from '@/components/BottomNav'
-import NewsScreen from '@/components/game/NewsScreen'
 import AchievementsScreen from '@/components/game/AchievementsScreen'
+import ProfileScreen from '@/components/auth/ProfileScreen'
 
-type AppView = 'game' | 'news' | 'history' | 'badges' | 'ranking'
+type AppView = 'game' | 'profile' | 'history' | 'badges' | 'ranking'
 
 export default function Home() {
   const { phase, startSetup } = useGameStore()
@@ -55,10 +55,10 @@ export default function Home() {
   }
 
   const activeTab: NavTab =
-    view === 'news'    ? 'news'
-    : view === 'history' ? 'history'
-    : view === 'badges'  ? 'badges'
-    : view === 'ranking' ? 'ranking'
+    view === 'profile'  ? 'profile'
+    : view === 'history'  ? 'history'
+    : view === 'badges'   ? 'badges'
+    : view === 'ranking'  ? 'ranking'
     : 'home'
 
   const navProps = {
@@ -68,8 +68,8 @@ export default function Home() {
 
   return (
     <div className="pb-16">
-      {view === 'news' ? (
-        <NewsScreen />
+      {view === 'profile' ? (
+        <ProfileScreen />
       ) : view === 'history' ? (
         <HistoryScreen
           onBack={() => setView('game')}

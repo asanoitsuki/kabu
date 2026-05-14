@@ -1,6 +1,6 @@
 'use client'
 
-export type NavTab = 'news' | 'history' | 'badges' | 'ranking' | 'home'
+export type NavTab = 'profile' | 'history' | 'badges' | 'ranking' | 'home'
 
 interface Props {
   active: NavTab
@@ -8,7 +8,7 @@ interface Props {
 }
 
 const TABS: { id: NavTab; emoji: string; label: string }[] = [
-  { id: 'news',     emoji: '📰', label: 'ニュース' },
+  { id: 'profile',  emoji: '👤', label: 'プロフィール' },
   { id: 'history',  emoji: '📊', label: '履歴' },
   { id: 'badges',   emoji: '🏅', label: '実績' },
   { id: 'ranking',  emoji: '🏆', label: 'ランキング' },

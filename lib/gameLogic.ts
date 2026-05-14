@@ -875,7 +875,8 @@ export function processTurn(
 
   const report: TurnReport = { turn, financials: newFinancials, stockPrice: newStockPrice, event, allocation }
 
-  const isGameOver = newFinancials.cash <= 0 || turn >= state.maxTurns
+  const isBankrupt = newCash <= 0
+  const isGameOver = isBankrupt || turn >= state.maxTurns
 
   const newState: GameState = {
     ...state,
@@ -887,6 +888,7 @@ export function processTurn(
     pendingEvent: null,
     marketSentiment: newSentiment,
     phase: isGameOver ? 'gameover' : 'playing',
+    bankrupted: isBankrupt,
   }
 
   return { newState, report }
@@ -938,7 +940,10 @@ export function formatMoney(n: number): string {
 export function getRating(
   stockHistory: GameState['stockHistory'],
   difficulty: Difficulty,
+  bankrupted?: boolean,
 ): { grade: string; message: string } {
+  // 倒産した場合は強制Fランク
+  if (bankrupted) return { grade: 'F', message: '倒産。資金が尽きて経営が続けられなかった…' }
   if (stockHistory.length < 2) return { grade: 'C', message: 'データ不足' }
   const first = stockHistory[0].price
   const last  = stockHistory[stockHistory.length - 1].price
@@ -950,4 +955,21 @@ export function getRating(
   if (growth >= cfg.cRank)  return { grade: 'C', message: '現状維持。嵐を乗り越えたが伸び悩んだ。' }
   if (growth >= cfg.dRank)  return { grade: 'D', message: '業績悪化。逆風に負けてしまった。' }
   return { grade: 'F', message: '経営破綻寸前。難易度を下げて再挑戦しよう！' }
+}
+
+/** 配分割合から各投資の効果を計算して返す（表示用） */
+export function calcAllocationEffect(allocation: { rd: number; marketing: number; hiring: number; capex: number }, budget: number): {
+  rdEffect: number; mktEffect: number; hireEffect: number; capexEffect: number; totalRevEffect: number
+} {
+  if (budget <= 0) return { rdEffect: 0, mktEffect: 0, hireEffect: 0, capexEffect: 0, totalRevEffect: 0 }
+  const rdPct    = allocation.rd        / budget
+  const mktPct   = allocation.marketing / budget
+  const hirePct  = allocation.hiring    / budget
+  const capexPct = allocation.capex     / budget
+  const rdEffect    = rdPct   * 25
+  const mktEffect   = mktPct  * 30
+  const hireEffect  = hirePct * 12
+  const capexEffect = capexPct * 15
+  const totalRevEffect = rdEffect + mktEffect + hireEffect + capexEffect
+  return { rdEffect, mktEffect, hireEffect, capexEffect, totalRevEffect }
 }
